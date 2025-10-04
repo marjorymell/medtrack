@@ -82,6 +82,7 @@ MedTrack é um aplicativo móvel multiplataforma (Android e iOS) para gerenciame
 - **SEMPRE** usar classes de tema com modificador `dark:` para adaptação automática
 
 **⚠️ IMPORTANTE - NativeWind v4 e React Native:**
+
 - React Native **NÃO suporta variáveis CSS** (`var(--background)`)
 - **SEMPRE** usar o modificador `dark:` para cada classe de cor
 - Variáveis CSS só funcionam na web, no React Native use cores RGB diretas
@@ -108,7 +109,7 @@ export function MedicationCard() {
 // ❌ ERRADO - Sem dark: não vai adaptar ao tema
 <View className="bg-card border-border rounded-lg border p-4">
   <Text className="text-foreground">Paracetamol 750mg</Text>
-</View>
+</View>;
 
 // ❌ EVITAR - Hard-coded colors e StyleSheet
 import { StyleSheet } from 'react-native';
