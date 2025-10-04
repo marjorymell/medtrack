@@ -8,66 +8,85 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
+        // Light theme colors (default)
+        border: {
+          DEFAULT: 'rgb(240, 242, 245)', // #F0F2F5
+          dark: 'rgb(41, 48, 56)', // #293038
+        },
+        input: {
+          DEFAULT: 'rgb(240, 242, 245)',
+          dark: 'rgb(41, 48, 56)',
+        },
+        ring: {
+          DEFAULT: 'rgb(5, 211, 219)', // #05D3DB
+          dark: 'rgb(33, 172, 177)', // #21ACB1
+        },
+        background: {
+          DEFAULT: 'rgb(255, 255, 255)', // #FFFFFF
+          dark: 'rgb(18, 20, 23)', // #121417
+        },
+        foreground: {
+          DEFAULT: 'rgb(18, 20, 23)', // #121417
+          dark: 'rgb(255, 255, 255)', // #FFFFFF
+        },
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
+          DEFAULT: 'rgb(5, 211, 219)', // #05D3DB
+          foreground: {
+            DEFAULT: 'rgb(255, 255, 255)',
+            dark: 'rgb(255, 255, 255)',
+          },
+          dark: 'rgb(33, 172, 177)', // #21ACB1
         },
         secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
-        },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
+          DEFAULT: 'rgb(240, 242, 245)', // #F0F2F5
+          foreground: {
+            DEFAULT: 'rgb(18, 20, 23)',
+            dark: 'rgb(255, 255, 255)',
+          },
+          dark: 'rgb(41, 48, 56)', // #293038
         },
         muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
+          DEFAULT: 'rgb(240, 242, 245)',
+          foreground: {
+            DEFAULT: 'rgb(99, 115, 135)', // #637387
+            dark: 'rgb(99, 115, 135)',
+          },
+          dark: 'rgb(41, 48, 56)',
         },
         accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
+          DEFAULT: 'rgb(5, 211, 219)',
+          foreground: {
+            DEFAULT: 'rgb(255, 255, 255)',
+            dark: 'rgb(255, 255, 255)',
+          },
+          dark: 'rgb(33, 172, 177)',
         },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
+        destructive: {
+          DEFAULT: 'rgb(239, 68, 68)',
+          foreground: {
+            DEFAULT: 'rgb(255, 255, 255)',
+            dark: 'rgb(255, 255, 255)',
+          },
+          dark: 'rgb(239, 68, 68)',
         },
         card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
+          DEFAULT: 'rgb(255, 255, 255)',
+          foreground: {
+            DEFAULT: 'rgb(18, 20, 23)',
+            dark: 'rgb(255, 255, 255)',
+          },
+          dark: 'rgb(41, 48, 56)',
         },
       },
-      borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+      fontFamily: {
+        'manrope-regular': ['Manrope_400Regular'],
+        'manrope-medium': ['Manrope_500Medium'],
+        'manrope-bold': ['Manrope_700Bold'],
       },
       borderWidth: {
         hairline: hairlineWidth(),
       },
-      keyframes: {
-        'accordion-down': {
-          from: { height: '0' },
-          to: { height: 'var(--radix-accordion-content-height)' },
-        },
-        'accordion-up': {
-          from: { height: 'var(--radix-accordion-content-height)' },
-          to: { height: '0' },
-        },
-      },
-      animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
-      },
     },
   },
-  future: {
-    hoverOnlyWhenSupported: true,
-  },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [],
 };
