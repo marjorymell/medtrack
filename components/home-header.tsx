@@ -12,11 +12,11 @@ export function HomeHeader({ onNotificationPress }: HomeHeaderProps) {
   const colors = COLORS[colorScheme ?? 'light'];
 
   return (
-    <View className="bg-background dark:bg-background-dark flex-row items-center justify-between px-4 pb-2 pt-4">
+    <View className="dark:bg-background-dark flex-row items-center justify-between bg-background px-4 pb-2 pt-4">
       {/* Espaçador para centralizar o título */}
       <View className="w-12" />
 
-      <Text className="text-foreground dark:text-foreground-dark flex-1 text-center text-lg font-bold">
+      <Text className="dark:text-foreground-dark flex-1 text-center text-lg font-bold text-foreground">
         Medicamentos de Hoje
       </Text>
 
