@@ -33,5 +33,5 @@ export function formatTime(date: Date | string): string {
  * Gera um ID único (para uso em mocks)
  */
 export function generateMockId(): string {
-  return `mock-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  return `mock-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
