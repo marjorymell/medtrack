@@ -1,5 +1,3 @@
-'use client';
-
 import { View, FlatList, TouchableOpacity, Image } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Plus } from 'lucide-react-native';
