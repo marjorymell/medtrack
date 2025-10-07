@@ -1,15 +1,16 @@
-'use client';
-
 import { View, Pressable } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useThemeColors } from '@/hooks/use-theme-colors';
 import { X } from 'lucide-react-native';
 import { useRouter, Stack } from 'expo-router';
 import { showToast } from '@/utils/toast';
+import { MOCK_TODAY_MEDICATIONS } from '@/mocks/medication-data';
 
 export default function ReminderNotificationScreen() {
   const colors = useThemeColors();
   const router = useRouter();
+
+  const medication = MOCK_TODAY_MEDICATIONS[0];
 
   const handleTakeNow = () => {
     // TODO: Implementar lógica de confirmar medicamento
@@ -32,31 +33,26 @@ export default function ReminderNotificationScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <View className="flex-1 bg-background px-6 pt-12 dark:bg-background-dark">
-        {/* Header com ícone X e título */}
-        <View className="mb-12 flex-row items-center gap-2">
+        <View className="mb-12 flex-row items-center">
           <Pressable onPress={handleClose} accessibilityLabel="Fechar" accessibilityRole="button">
             <X size={24} color={colors.textPrimary} />
           </Pressable>
-          <Text className="text-lg font-semibold text-foreground dark:text-foreground-dark">
+          <Text className="flex-1 text-center text-lg font-semibold text-foreground dark:text-foreground-dark">
             Lembrete de Medicamento
           </Text>
+          <View style={{ width: 24 }} />
         </View>
 
-        {/* Conteúdo centralizado */}
         <View className="flex-1 items-center justify-center px-4">
-          {/* Título principal */}
           <Text className="mb-4 text-center text-[22px] font-bold text-foreground dark:text-foreground-dark">
             Hora de tomar seu medicamento
           </Text>
 
-          {/* Descrição */}
           <Text className="mb-12 text-center text-base text-muted-foreground dark:text-muted-foreground-dark">
-            Tome 1 comprimido de Paracetamol para dor de cabeça
+            Tome 1 comprimido de {medication.name} ({medication.dosage})
           </Text>
 
-          {/* Botões de ação */}
           <View className="w-full gap-4">
-            {/* Botão Tomar Agora */}
             <Pressable
               onPress={handleTakeNow}
               className="h-12 w-full items-center justify-center rounded-lg bg-primary dark:bg-primary-dark"
@@ -67,7 +63,6 @@ export default function ReminderNotificationScreen() {
               </Text>
             </Pressable>
 
-            {/* Botão Adiar */}
             <Pressable
               onPress={handlePostpone}
               className="h-12 w-full items-center justify-center rounded-lg bg-secondary dark:bg-secondary-dark"
