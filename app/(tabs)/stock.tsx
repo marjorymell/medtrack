@@ -1,13 +1,8 @@
-import { View, FlatList, TouchableOpacity } from 'react-native';
+import { View, FlatList, TouchableOpacity, Image } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Plus } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
-import { COLORS } from '@/lib/theme';
-import { SvgXml } from 'react-native-svg';
-
-const pillIconSvg = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M10.5 9.5L14.5 13.5M10.5 13.5L14.5 9.5M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-</svg>`;
+import { useThemeColors } from '@/hooks/use-theme-colors';
 
 const medications = [
   { id: '1', name: 'Paracetamol', remainingPills: 30 },
@@ -19,21 +14,25 @@ const medications = [
 
 export default function StockScreen() {
   const { colorScheme } = useColorScheme();
-  const colors = COLORS[colorScheme ?? 'light'];
+  const colors = useThemeColors();
 
   const renderMedicationItem = ({ item }: { item: (typeof medications)[0] }) => (
-    <View className="mb-3 flex-row items-center rounded-xl bg-white p-4 dark:bg-gray-800">
+    <View className="mb-3 flex-row items-center rounded-xl p-4">
       <View
         className="mr-4 h-12 w-12 items-center justify-center rounded-lg"
         style={{ backgroundColor: '#F0F2F5' }}>
-        <SvgXml xml={pillIconSvg} width={24} height={24} />
+        <Image
+          source={require('@/assets/icons/pill-icon.png')}
+          style={{ width: 24, height: 24 }}
+          resizeMode="contain"
+        />
       </View>
 
       <View className="flex-1">
-        <Text className="mb-1 text-base font-semibold text-gray-900 dark:text-white">
+        <Text className="mb-1 text-base font-semibold text-foreground dark:text-foreground-dark">
           {item.name}
         </Text>
-        <Text className="text-sm text-gray-500 dark:text-gray-400">
+        <Text className="text-sm text-muted-foreground dark:text-muted-foreground-dark">
           {item.remainingPills} comprimidos restantes
         </Text>
       </View>
@@ -41,17 +40,17 @@ export default function StockScreen() {
   );
 
   return (
-    <View className="flex-1 bg-gray-50 dark:bg-gray-900">
-      <View className="flex-row items-center justify-between px-6 pb-4 pt-12">
-        <Text className="text-3xl font-bold text-gray-900 dark:text-white">Estoque</Text>
+    <View className="flex-1 bg-background dark:bg-background-dark">
+      <View className="relative items-center justify-center px-6 pb-4 pt-12">
+        <Text className="text-lg font-bold text-foreground dark:text-foreground-dark">Estoque</Text>
         <TouchableOpacity
-          className="h-12 w-12 items-center justify-center rounded-full"
-          style={{ backgroundColor: colors.primary }}
+          className="absolute right-6 items-center justify-center"
+          style={{ top: 48 }}
           onPress={() => {
             // TODO: Navegar para página de adicionar medicamento
             console.log('Adicionar medicamento');
           }}>
-          <Plus size={24} color="white" />
+          <Plus size={24} color={colors.foreground} />
         </TouchableOpacity>
       </View>
 
