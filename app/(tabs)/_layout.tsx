@@ -1,4 +1,3 @@
-import React from 'react';
 import { Tabs } from 'expo-router';
 import { Home, Clock, Package, User } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
