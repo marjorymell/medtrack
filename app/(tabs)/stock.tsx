@@ -1,22 +1,23 @@
+'use client';
+
 import { View, FlatList, TouchableOpacity, Image } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Plus } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import { useThemeColors } from '@/hooks/use-theme-colors';
-
-const medications = [
-  { id: '1', name: 'Paracetamol', remainingPills: 30 },
-  { id: '2', name: 'Ibuprofeno', remainingPills: 15 },
-  { id: '3', name: 'Amoxicilina', remainingPills: 8 },
-  { id: '4', name: 'Dipirona', remainingPills: 45 },
-  { id: '5', name: 'Omeprazol', remainingPills: 22 },
-];
+import { MOCK_MEDICATION_STOCK } from '@/mocks/medication-data';
+import { useEffect } from 'react';
 
 export default function StockScreen() {
   const { colorScheme } = useColorScheme();
   const colors = useThemeColors();
 
-  const renderMedicationItem = ({ item }: { item: (typeof medications)[0] }) => (
+  useEffect(() => {
+    console.log('[MOCK API] Buscando medicamentos do estoque...');
+    console.log(`[MOCK API] ✓ Retornando ${MOCK_MEDICATION_STOCK.length} medicamentos do estoque`);
+  }, []);
+
+  const renderMedicationItem = ({ item }: { item: (typeof MOCK_MEDICATION_STOCK)[0] }) => (
     <View className="flex-row items-center px-4 py-6">
       <View
         className="mr-4 h-12 w-12 items-center justify-center rounded-lg"
@@ -34,14 +35,18 @@ export default function StockScreen() {
 
       <View className="flex-1">
         <Text className="mb-1 text-base font-semibold text-foreground dark:text-foreground-dark">
-          {item.name}
+          {item.name} {item.dosage}
         </Text>
         <Text className="text-sm text-muted-foreground dark:text-muted-foreground-dark">
-          {item.remainingPills} comprimidos restantes
+          {item.currentStock} comprimidos restantes
         </Text>
       </View>
     </View>
   );
+
+  const handleAddMedication = () => {
+    console.log('[MOCK API] Botão de adicionar medicamento pressionado');
+  };
 
   return (
     <View className="flex-1 bg-background dark:bg-background-dark">
@@ -50,16 +55,13 @@ export default function StockScreen() {
         <TouchableOpacity
           className="absolute right-6 items-center justify-center"
           style={{ top: 48 }}
-          onPress={() => {
-            // TODO: Navegar para página de adicionar medicamento
-            console.log('Adicionar medicamento');
-          }}>
+          onPress={handleAddMedication}>
           <Plus size={24} color={colorScheme === 'dark' ? '#FFFFFF' : colors.textPrimary} />
         </TouchableOpacity>
       </View>
 
       <FlatList
-        data={medications}
+        data={MOCK_MEDICATION_STOCK}
         renderItem={renderMedicationItem}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
