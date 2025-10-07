@@ -17,12 +17,16 @@ export default function StockScreen() {
   const colors = useThemeColors();
 
   const renderMedicationItem = ({ item }: { item: (typeof medications)[0] }) => (
-    <View className="mb-3 flex-row items-center rounded-xl p-4">
+    <View className="flex-row items-center px-4 py-6">
       <View
         className="mr-4 h-12 w-12 items-center justify-center rounded-lg"
-        style={{ backgroundColor: '#F0F2F5' }}>
+        style={{ backgroundColor: colorScheme === 'dark' ? '#293038' : '#F0F2F5' }}>
         <Image
-          source={require('@/assets/icons/pill-icon.png')}
+          source={
+            colorScheme === 'dark'
+              ? require('@/assets/icons/pill-icon-white.png')
+              : require('@/assets/icons/pill-icon.png')
+          }
           style={{ width: 24, height: 24 }}
           resizeMode="contain"
         />
@@ -50,7 +54,7 @@ export default function StockScreen() {
             // TODO: Navegar para página de adicionar medicamento
             console.log('Adicionar medicamento');
           }}>
-          <Plus size={24} color={colors.foreground} />
+          <Plus size={24} color={colorScheme === 'dark' ? '#FFFFFF' : colors.textPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -58,7 +62,6 @@ export default function StockScreen() {
         data={medications}
         renderItem={renderMedicationItem}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 24 }}
         showsVerticalScrollIndicator={false}
       />
     </View>
