@@ -5,10 +5,12 @@ import { useColorScheme } from 'nativewind';
 import { useThemeColors } from '@/hooks/use-theme-colors';
 import { MOCK_MEDICATION_STOCK } from '@/mocks/medication-data';
 import { useEffect } from 'react';
+import { useRouter } from 'expo-router';
 
 export default function StockScreen() {
   const { colorScheme } = useColorScheme();
   const colors = useThemeColors();
+  const router = useRouter();
 
   useEffect(() => {
     console.log('[MOCK API] Página de estoque carregada');
@@ -42,10 +44,8 @@ export default function StockScreen() {
   );
 
   const handleAddMedication = () => {
-    console.log('[MOCK API] Botão de adicionar medicamento pressionado');
-    console.log(
-      '[MOCK API] Funcionalidade de adicionar medicamento será implementada posteriormente'
-    );
+    console.log('[MOCK API] Navegando para página de adicionar medicamento');
+    router.push('/add-medication' as any);
   };
 
   return (
