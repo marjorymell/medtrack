@@ -12,6 +12,7 @@ import {
 import { Stack, useRouter } from 'expo-router';
 import { X } from 'lucide-react-native';
 import { useThemeColors } from '@/hooks/use-theme-colors';
+import { showToast } from '@/utils/toast';
 
 interface AddMedicationFormData {
   name: string;
@@ -34,8 +35,6 @@ export default function AddMedicationScreen() {
   const [expiryDate, setExpiryDate] = useState<string>('');
   const [stock, setStock] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
-
-  const scrollY = useRef<Animated.Value>(new Animated.Value(0)).current;
   const frequencyScrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
@@ -62,9 +61,17 @@ export default function AddMedicationScreen() {
       stock,
       notes,
     };
-    console.log('[MOCK API] Salvando novo medicamento:', formData);
-    // TODO: Implementar salvamento no backend
-    router.back();
+
+    try {
+      console.log('[MOCK API] Tentando salvar novo medicamento:', formData);
+      // TODO: Implementar salvamento no backend
+
+      showToast('Medicamento salvo com sucesso!', 'success');
+      router.back();
+    } catch (error) {
+      console.error('[MOCK API] Erro ao salvar medicamento:', error);
+      showToast('Erro ao salvar medicamento. Tente novamente.', 'error');
+    }
   };
 
   const handleFrequencyScroll = (event: NativeSyntheticEvent<NativeScrollEvent>): void => {
