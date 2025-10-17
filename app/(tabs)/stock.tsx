@@ -16,7 +16,6 @@ export default function StockScreen() {
     console.log('[MOCK API] Página de estoque carregada');
     console.log('[MOCK API] Buscando medicamentos do estoque...');
     console.log(`[MOCK API] ✓ Retornando ${MOCK_MEDICATION_STOCK.length} medicamentos do estoque`);
-    console.log('[MOCK API] Dados do estoque:', MOCK_MEDICATION_STOCK);
   }, []);
 
   const renderMedicationItem = ({ item }: { item: (typeof MOCK_MEDICATION_STOCK)[0] }) => (
