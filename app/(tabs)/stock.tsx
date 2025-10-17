@@ -11,15 +11,14 @@ export default function StockScreen() {
   const colors = useThemeColors();
 
   useEffect(() => {
+    console.log('[MOCK API] Página de estoque carregada');
     console.log('[MOCK API] Buscando medicamentos do estoque...');
     console.log(`[MOCK API] ✓ Retornando ${MOCK_MEDICATION_STOCK.length} medicamentos do estoque`);
   }, []);
 
   const renderMedicationItem = ({ item }: { item: (typeof MOCK_MEDICATION_STOCK)[0] }) => (
     <View className="flex-row items-center px-4 py-6">
-      <View
-        className="mr-4 h-12 w-12 items-center justify-center rounded-lg"
-        style={{ backgroundColor: colorScheme === 'dark' ? '#293038' : '#F0F2F5' }}>
+      <View className="mr-4 h-12 w-12 items-center justify-center rounded-lg bg-secondary dark:bg-secondary-dark">
         <Image
           source={
             colorScheme === 'dark'
@@ -44,6 +43,9 @@ export default function StockScreen() {
 
   const handleAddMedication = () => {
     console.log('[MOCK API] Botão de adicionar medicamento pressionado');
+    console.log(
+      '[MOCK API] Funcionalidade de adicionar medicamento será implementada posteriormente'
+    );
   };
 
   return (
@@ -54,7 +56,7 @@ export default function StockScreen() {
           className="absolute right-6 items-center justify-center"
           style={{ top: 48 }}
           onPress={handleAddMedication}>
-          <Plus size={24} color={colorScheme === 'dark' ? '#FFFFFF' : colors.textPrimary} />
+          <Plus size={24} color={colors.textPrimary} />
         </TouchableOpacity>
       </View>
 
