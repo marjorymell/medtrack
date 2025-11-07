@@ -11,7 +11,7 @@ import { useFonts } from 'expo-font';
 import { Manrope_400Regular, Manrope_500Medium, Manrope_700Bold } from '@expo-google-fonts/manrope';
 
 export const unstable_settings = {
-  initialRouteName: '(tabs)',
+  initialRouteName: 'index',
 };
 
 export default function RootLayout() {
@@ -32,8 +32,11 @@ export default function RootLayout() {
       <NavigationThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         <Stack>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="add-medication" options={{ headerShown: false }} />
+          <Stack.Screen name="reminder-notification" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ headerShown: false }} />
+          <Stack.Screen name="auth-screen" options={{ headerShown: false }} />
         </Stack>
         <PortalHost />
       </NavigationThemeProvider>

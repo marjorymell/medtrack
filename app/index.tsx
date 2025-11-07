@@ -1,89 +1,86 @@
-import { Button } from '@/components/ui/button';
-import { Icon } from '@/components/ui/icon';
+import { View, ScrollView, Pressable, Image } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { THEME } from '@/lib/theme';
-import { Link, Stack } from 'expo-router';
-import { MoonStarIcon, StarIcon, SunIcon } from 'lucide-react-native';
-import { useColorScheme } from 'nativewind';
-import * as React from 'react';
-import { Image, type ImageStyle, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useThemeColors } from '@/hooks/use-theme-colors';
 
-const LOGO = {
-  light: require('@/assets/images/react-native-reusables-light.png'),
-  dark: require('@/assets/images/react-native-reusables-dark.png'),
-};
+export default function LoginScreen() {
+  const router = useRouter();
+  const colors = useThemeColors();
 
-const SCREEN_OPTIONS = {
-  light: {
-    title: 'React Native Reusables',
-    headerTransparent: true,
-    headerShadowVisible: true,
-    headerStyle: { backgroundColor: THEME.light.background },
-    headerRight: () => <ThemeToggle />,
-  },
-  dark: {
-    title: 'React Native Reusables',
-    headerTransparent: true,
-    headerShadowVisible: true,
-    headerStyle: { backgroundColor: THEME.dark.background },
-    headerRight: () => <ThemeToggle />,
-  },
-};
+  const handleLogin = () => {
+    router.push({ pathname: '/auth-screen', params: { mode: 'login' } });
+  };
+  const handleCreateAccount = () => {
+    router.push({ pathname: '/auth-screen', params: { mode: 'signup' } });
+  };
 
-const IMAGE_STYLE: ImageStyle = {
-  height: 76,
-  width: 76,
-};
-
-export default function Screen() {
-  const { colorScheme } = useColorScheme();
+  const handleLoginWithoutAuth = () => {
+    console.log('[MOCK API] Usuário tentou entrar sem logar');
+    router.replace('/(tabs)');
+    console.log('[MOCK API] Acesso sem autenticação concedido');
+  };
 
   return (
-    <>
-      <Stack.Screen options={SCREEN_OPTIONS[colorScheme ?? 'light']} />
-      <View className="flex-1 items-center justify-center gap-8 p-4">
-        <Image source={LOGO[colorScheme ?? 'light']} style={IMAGE_STYLE} resizeMode="contain" />
-        <View className="gap-2 p-4">
-          <Text className="ios:text-foreground font-mono text-sm text-muted-foreground">
-            1. Edit <Text variant="code">app/index.tsx</Text> to get started.
+    <ScrollView
+      className="flex-1 bg-background dark:bg-background-dark"
+      contentContainerStyle={{ flexGrow: 1 }}>
+      <View className="flex-1 items-center justify-center px-6">
+        {/* Logo and Text Section */}
+        <View className="mb-12 w-full items-center">
+          <View className="mb-6">
+            <Image
+              source={require('@/assets/images/logo-medtrack.png')}
+              style={{ width: 154, height: 154 }}
+              resizeMode="contain"
+            />
+          </View>
+
+          {/* MedTrack Text */}
+          <Text className="mb-12 text-[22px] font-semibold text-foreground dark:text-foreground-dark">
+            MedTrack
           </Text>
-          <Text className="ios:text-foreground font-mono text-sm text-muted-foreground">
-            2. Save to see your changes instantly.
-          </Text>
-        </View>
-        <View className="flex-row gap-2">
-          <Link href="https://reactnativereusables.com" asChild>
-            <Button>
-              <Text>Browse the Docs</Text>
-            </Button>
-          </Link>
-          <Link href="https://github.com/founded-labs/react-native-reusables" asChild>
-            <Button variant="ghost">
-              <Text>Star the Repo</Text>
-              <Icon as={StarIcon} />
-            </Button>
-          </Link>
+
+          <Pressable
+            onPress={handleLogin}
+            className="mb-3 h-12 w-full items-center justify-center rounded-lg bg-primary dark:bg-primary-dark"
+            accessibilityLabel="Entrar"
+            accessibilityRole="button">
+            <Text className="text-base font-bold text-primary-foreground dark:text-primary-foreground-dark">
+              Entrar
+            </Text>
+          </Pressable>
+
+          {/* Create Account Button */}
+          <Pressable
+            onPress={handleCreateAccount}
+            className="mb-4 h-12 w-full items-center justify-center rounded-lg bg-secondary dark:bg-secondary-dark"
+            accessibilityLabel="Criar Conta"
+            accessibilityRole="button">
+            <Text className="text-base font-semibold text-foreground dark:text-foreground-dark">
+              Criar Conta
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={handleLoginWithoutAuth}
+            accessibilityLabel="Entrar sem logar"
+            accessibilityRole="button">
+            <View className="border-b pb-0.5" style={{ borderColor: colors.textSecondary }}>
+              <Text className="text-xs font-medium" style={{ color: colors.textSecondary }}>
+                Entrar sem logar
+              </Text>
+            </View>
+          </Pressable>
         </View>
       </View>
-    </>
-  );
-}
 
-const THEME_ICONS = {
-  light: SunIcon,
-  dark: MoonStarIcon,
-};
-
-function ThemeToggle() {
-  const { colorScheme, toggleColorScheme } = useColorScheme();
-
-  return (
-    <Button
-      onPressIn={toggleColorScheme}
-      size="icon"
-      variant="ghost"
-      className="rounded-full web:mx-4">
-      <Icon as={THEME_ICONS[colorScheme ?? 'light']} className="size-5" />
-    </Button>
+      <View className="px-6 py-8">
+        <Text
+          className="text-center text-xs leading-relaxed"
+          style={{ color: colors.textSecondary }}>
+          Ao continuar, você concorda com nossos Termos de Serviço e Política de Privacidade.
+        </Text>
+      </View>
+    </ScrollView>
   );
 }
