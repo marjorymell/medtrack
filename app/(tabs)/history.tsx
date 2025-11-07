@@ -1,8 +1,8 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { View, ScrollView, Pressable, FlatList, ActivityIndicator } from 'react-native';
+import { View, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useThemeColors } from '@/hooks/use-theme-colors';
-import { Pill, CheckCircle, XCircle, ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { Pill, ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { medicationServiceMock } from '@/mocks/medication-service-mock';
 import { MedicationHistory } from '@/types/medication';
 import {
@@ -17,7 +17,6 @@ import {
   addDays,
   addMonths,
   subMonths,
-  getDay,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -43,6 +42,9 @@ interface AdherenceCardProps {
   color: string;
 }
 
+/**
+ * Adherence Metrics Card (Doses Tomadas / Esquecidas)
+ */
 const AdherenceCard = ({ title, count, color }: AdherenceCardProps) => (
   <View className="mx-2 flex-1 rounded-lg border border-border bg-card p-4 dark:border-border-dark dark:bg-card-dark">
     <Text className="mb-1 text-sm font-medium text-foreground dark:text-foreground-dark">
@@ -58,9 +60,11 @@ interface HistoryTimelineItemProps {
   colors: ReturnType<typeof useThemeColors>;
 }
 
+/**
+ * Timeline Detail Item
+ */
 const HistoryTimelineItem = ({ item, isLast, colors }: HistoryTimelineItemProps) => {
   let statusText: string;
-  let statusTextColor: string;
 
   const iconComponent = <Pill size={16} color={colors.textPrimary} />;
 
@@ -120,8 +124,15 @@ const processHistoryData = (rawHistory: MedicationHistory[]): DailyHistoryUI => 
         postponedCount++;
       }
 
-      const uiStatus: 'taken' | 'missed' | 'postponed' =
-        item.status === 'confirmed' ? 'taken' : item.status === 'missed' ? 'missed' : 'postponed';
+      // S3358 Fix: Extracted nested ternary into if/else if/else
+      let uiStatus: 'taken' | 'missed' | 'postponed';
+      if (item.status === 'confirmed') {
+        uiStatus = 'taken';
+      } else if (item.status === 'missed') {
+        uiStatus = 'missed';
+      } else {
+        uiStatus = 'postponed';
+      }
 
       return {
         id: item.id,
@@ -163,8 +174,8 @@ const CalendarGrid = ({
 }: CalendarGridProps) => {
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
-  const startDate = startOfWeek(monthStart, { weekStartsOn: 0 }); // Domingo
-  const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 }); // Sábado
+  const startDate = startOfWeek(monthStart, { weekStartsOn: 0 });
+  const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 });
 
   const days: Date[] = [];
   let day = startDate;
@@ -213,11 +224,12 @@ const CalendarGrid = ({
           const isToday = isSameDay(date, new Date());
           const isSelected = isSameDay(date, selectedDate);
 
-          const backgroundColor = isSelected
-            ? colors.primary
-            : isCurrentMonth
-              ? colors.card
-              : 'transparent';
+          let backgroundColor = 'transparent';
+          if (isSelected) {
+            backgroundColor = colors.primary;
+          } else if (isCurrentMonth) {
+            backgroundColor = colors.card;
+          }
 
           const textColor = isSelected ? colors.primaryForeground : colors.textPrimary;
 
@@ -258,11 +270,12 @@ export default function HistoryScreen() {
   const today = useMemo(() => startOfDay(new Date()), []);
 
   const [selectedDate, setSelectedDate] = useState<Date>(today);
-  const [currentMonth, setCurrentMonth] = useState(today); // State for the viewed month
+  // State for the viewed month
+  const [currentMonth, setCurrentMonth] = useState(today);
 
   const [dailyHistory, setDailyHistory] = useState<DailyHistoryUI | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // S1854 Fix: Removed unused 'error' state
 
   // ----------------------------------------------------------------------
   // 1. DATA FETCHING (Simulating API)
@@ -270,7 +283,6 @@ export default function HistoryScreen() {
 
   const fetchHistoryForDay = useCallback(async (date: Date) => {
     setIsLoading(true);
-    setError(null);
     setDailyHistory(null);
 
     // The mock service filters by date.
@@ -280,18 +292,17 @@ export default function HistoryScreen() {
 
       const rawData = await medicationServiceMock.getMedicationHistory(startDate, endDate);
 
-      // Process raw data for the UI
       const processedData = processHistoryData(rawData);
       setDailyHistory(processedData);
     } catch (err) {
       console.error('[MOCK API] Erro ao carregar histórico:', err);
-      setError('Não foi possível carregar o histórico. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    // Ensures the viewed month contains the selected date
     if (!isSameDay(startOfMonth(selectedDate), startOfMonth(currentMonth))) {
       setCurrentMonth(startOfMonth(selectedDate));
     }
@@ -358,6 +369,7 @@ export default function HistoryScreen() {
             />
             <AdherenceCard
               title="Doses Esquecidas"
+              // Counts postponed/missed together for the non-taken metric.
               count={dailyHistory.missedCount + dailyHistory.postponedCount}
               color={colors.error}
             />
@@ -370,10 +382,10 @@ export default function HistoryScreen() {
             Detalhes
           </Text>
 
-          {dailyHistory && dailyHistory.details.length === 0 ? (
+          {dailyHistory?.details.length === 0 ? (
             <View className="items-center py-10">
               <Text className="text-center text-muted-foreground dark:text-muted-foreground-dark">
-                Nenhum medicamento registrado para o dia {format(selectedDate, 'dd/MM/yyyy')}.
+                Nenhum medicamento registrado para o dia {format(selectedDate, 'dd/MM/yyyy')}.{' '}
               </Text>
             </View>
           ) : (
