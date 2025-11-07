@@ -124,7 +124,6 @@ const processHistoryData = (rawHistory: MedicationHistory[]): DailyHistoryUI => 
         postponedCount++;
       }
 
-      // S3358 Fix: Extracted nested ternary into if/else if/else
       let uiStatus: 'taken' | 'missed' | 'postponed';
       if (item.status === 'confirmed') {
         uiStatus = 'taken';
@@ -270,12 +269,10 @@ export default function HistoryScreen() {
   const today = useMemo(() => startOfDay(new Date()), []);
 
   const [selectedDate, setSelectedDate] = useState<Date>(today);
-  // State for the viewed month
   const [currentMonth, setCurrentMonth] = useState(today);
 
   const [dailyHistory, setDailyHistory] = useState<DailyHistoryUI | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  // S1854 Fix: Removed unused 'error' state
 
   // ----------------------------------------------------------------------
   // 1. DATA FETCHING (Simulating API)
