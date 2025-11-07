@@ -46,7 +46,7 @@ interface AdherenceCardProps {
  * Adherence Metrics Card (Doses Tomadas / Esquecidas)
  */
 const AdherenceCard = ({ title, count, color }: AdherenceCardProps) => (
-  <View className="mx-2 flex-1 rounded-lg border border-primary bg-card p-4 dark:border-primary-dark dark:bg-card-dark">
+  <View className="mx-2 flex-1 rounded-lg border border-primary bg-background p-4 dark:border-primary-dark dark:bg-background-dark">
     <Text className="mb-1 text-sm font-medium text-foreground dark:text-foreground-dark">
       {title}
     </Text>
@@ -208,7 +208,7 @@ const CalendarGrid = ({
       <View className="mb-2 flex-row justify-around">
         {WEEK_DAYS.map((dayName, index) => (
           <Text
-            key={index}
+            key={`${dayName}-${index}`}
             className="w-[14.28%] text-center text-sm font-semibold text-foreground/70 dark:text-foreground-dark/70">
             {dayName}
           </Text>
