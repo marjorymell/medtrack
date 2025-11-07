@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import { View, ScrollView, Pressable, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, ScrollView, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { FormField } from '@/components/ui/form-field';
 import { useThemeColors } from '@/hooks/use-theme-colors';
+import { ArrowLeft } from 'lucide-react-native';
 
 type AuthMode = 'login' | 'signup';
 
@@ -46,18 +47,22 @@ export default function AuthScreen() {
       className="flex-1"
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={0}>
+      <View className="absolute left-0 top-0 z-10 px-6 pt-16">
+        <Pressable
+          onPress={() => router.back()}
+          className=""
+          accessibilityLabel="Voltar para a tela anterior"
+          accessibilityRole="button">
+          <ArrowLeft size={24} color={colors.textPrimary} />
+        </Pressable>
+      </View>
+
       <ScrollView
         className="flex-1 bg-background dark:bg-background-dark"
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}>
-        <View className="flex-1 items-center justify-center px-6 pt-10">
-          {/* Logo and Title */}
+        <View className="flex-1 items-center justify-center px-6 pt-20">
           <View className="mb-8 w-full items-center">
-            <Image
-              source={require('@/assets/images/logo-medtrack.png')}
-              style={{ width: 100, height: 100 }}
-              resizeMode="contain"
-            />
             <Text className="mt-4 text-[24px] font-bold text-foreground dark:text-foreground-dark">
               {isLogin ? 'Bem-vindo de Volta' : 'Criar Sua Conta'}
             </Text>
