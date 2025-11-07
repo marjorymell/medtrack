@@ -1,14 +1,36 @@
 import { View, FlatList, ActivityIndicator, RefreshControl, Pressable } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { HomeHeader } from '@/components/home-header';
+import { HomeHeader } from '@/components/home-header'; // Removendo importação no uso, mas mantendo aqui por enquanto
 import { MedicationCard } from '@/components/medication-card';
 import { useTodayMedications } from '@/hooks/use-today-medications';
 import { useThemeColors } from '@/hooks/use-theme-colors';
 import { showToast } from '@/utils/toast';
 import { useState } from 'react';
+import { Bell } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+
+const HomeTitleHeader = ({ onNotificationPress }: { onNotificationPress: () => void }) => {
+  const colors = useThemeColors();
+
+  return (
+    <View className="relative items-center justify-center px-6 pb-4 pt-12">
+      <Text className="text-lg font-bold text-foreground dark:text-foreground-dark">
+        Medicamentos de Hoje
+      </Text>
+      <Pressable
+        className="absolute right-6 items-center justify-center"
+        style={{ top: 48 }}
+        onPress={onNotificationPress}>
+        <Bell size={24} color={colors.textPrimary} />
+      </Pressable>
+    </View>
+  );
+};
 
 export default function HomeScreen() {
   const colors = useThemeColors();
+  const router = useRouter();
+
   const { medications, isLoading, error, refetch, confirmMedication, postponeMedication } =
     useTodayMedications();
 
@@ -45,26 +67,32 @@ export default function HomeScreen() {
 
   if (isLoading && !refreshing) {
     return (
-      <View className="bg-background dark:bg-background-dark flex-1 items-center justify-center">
+      <View className="flex-1 items-center justify-center bg-background dark:bg-background-dark">
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
-  };
+  }
 
   if (error) {
     return (
-      <View className="bg-background dark:bg-background-dark flex-1 items-center justify-center px-4">
-        <Text className="text-muted-foreground dark:text-muted-foreground-dark mb-4 text-center">{error}</Text>
-        <Pressable onPress={refetch} className="bg-primary dark:bg-primary-dark rounded-lg px-6 py-3">
-          <Text className="text-primary-foreground dark:text-primary-foreground-dark font-bold">Tentar Novamente</Text>
+      <View className="flex-1 items-center justify-center bg-background px-4 dark:bg-background-dark">
+        <Text className="mb-4 text-center text-muted-foreground dark:text-muted-foreground-dark">
+          {error}
+        </Text>
+        <Pressable
+          onPress={refetch}
+          className="rounded-lg bg-primary px-6 py-3 dark:bg-primary-dark">
+          <Text className="font-bold text-primary-foreground dark:text-primary-foreground-dark">
+            Tentar Novamente
+          </Text>
         </Pressable>
       </View>
     );
   }
 
   return (
-    <View className="bg-background dark:bg-background-dark flex-1">
-      <HomeHeader onNotificationPress={handleNotificationPress} />
+    <View className="flex-1 bg-background dark:bg-background-dark">
+      <HomeTitleHeader onNotificationPress={handleNotificationPress} />
 
       <FlatList
         data={medications}
@@ -73,11 +101,15 @@ export default function HomeScreen() {
           <MedicationCard medication={item} onConfirm={handleConfirm} onPostpone={handlePostpone} />
         )}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+          />
         }
         ListEmptyComponent={
           <View className="flex-1 items-center justify-center py-20">
-            <Text className="text-muted-foreground dark:text-muted-foreground-dark text-center">
+            <Text className="text-center text-muted-foreground dark:text-muted-foreground-dark">
               Nenhum medicamento programado para hoje
             </Text>
           </View>
