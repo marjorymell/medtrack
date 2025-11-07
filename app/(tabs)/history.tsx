@@ -21,7 +21,7 @@ import {
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-// --- TIPOS INTERNOS DA TELA ---
+// --- INTERNAL SCREEN TYPES ---
 interface DailyHistoryUI {
   takenCount: number;
   missedCount: number;
@@ -30,19 +30,22 @@ interface DailyHistoryUI {
     id: string;
     name: string;
     dosage: string;
-    time: string; // HH:mm format
+    time: string;
     status: 'taken' | 'missed' | 'postponed';
   }[];
 }
+
+// --- HELPER COMPONENTS ---
 
 interface AdherenceCardProps {
   title: string;
   count: number;
   color: string;
 }
+
 const AdherenceCard = ({ title, count, color }: AdherenceCardProps) => (
   <View className="mx-2 flex-1 rounded-lg border border-border bg-card p-4 dark:border-border-dark dark:bg-card-dark">
-    <Text className="mb-1 text-sm font-medium text-muted-foreground dark:text-muted-foreground-dark">
+    <Text className="mb-1 text-sm font-medium text-foreground dark:text-foreground-dark">
       {title}
     </Text>
     <Text className="text-3xl font-bold text-foreground dark:text-foreground-dark">{count}</Text>
@@ -54,6 +57,7 @@ interface HistoryTimelineItemProps {
   isLast: boolean;
   colors: ReturnType<typeof useThemeColors>;
 }
+
 const HistoryTimelineItem = ({ item, isLast, colors }: HistoryTimelineItemProps) => {
   let statusText: string;
   let statusTextColor: string;
@@ -74,8 +78,10 @@ const HistoryTimelineItem = ({ item, isLast, colors }: HistoryTimelineItemProps)
 
   return (
     <View className="flex-row">
-      <View className="mr-4 items-center">
+      {/* Timeline Point */}
+      <View className="mr-4 items-center pt-1">
         {iconComponent}
+        {/* Connector Line */}
         {!isLast && (
           <View
             className="w-[1px] flex-1 bg-muted-foreground/50 dark:bg-muted-foreground-dark/50"
@@ -83,6 +89,7 @@ const HistoryTimelineItem = ({ item, isLast, colors }: HistoryTimelineItemProps)
           />
         )}
       </View>
+
       <View className="flex-1 pb-6">
         <Text className="text-base font-semibold text-foreground dark:text-foreground-dark">
           {item.name} {item.dosage}
@@ -95,6 +102,7 @@ const HistoryTimelineItem = ({ item, isLast, colors }: HistoryTimelineItemProps)
   );
 };
 
+// --- DATA LOGIC FUNCTIONS ---
 const processHistoryData = (rawHistory: MedicationHistory[]): DailyHistoryUI => {
   let takenCount = 0;
   let missedCount = 0;
@@ -129,9 +137,12 @@ const processHistoryData = (rawHistory: MedicationHistory[]): DailyHistoryUI => 
   return { takenCount, missedCount, postponedCount, details };
 };
 
+// --- UTILITY FUNCTION ---
 const capitalizeFirstLetter = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
+
+// --- CALENDAR COMPONENT ---
 
 interface CalendarGridProps {
   currentMonth: Date;
@@ -170,6 +181,7 @@ const CalendarGrid = ({
 
   return (
     <View className="px-6 py-4">
+      {/* Month Navigation */}
       <View className="mb-6 flex-row items-center justify-between">
         <Pressable onPress={handlePrevMonth} className="p-2">
           <ChevronLeft size={24} color={colors.textPrimary} strokeWidth={1.5} />
@@ -182,6 +194,7 @@ const CalendarGrid = ({
         </Pressable>
       </View>
 
+      {/* Week Header */}
       <View className="mb-2 flex-row justify-around">
         {WEEK_DAYS.map((dayName, index) => (
           <Text
@@ -192,6 +205,7 @@ const CalendarGrid = ({
         ))}
       </View>
 
+      {/* Day Grid (6 rows x 7 columns) */}
       <View className="flex-row flex-wrap justify-around">
         {days.map((date, index) => {
           const dayOfMonth = format(date, 'd');
@@ -223,6 +237,7 @@ const CalendarGrid = ({
                   }}>
                   {dayOfMonth}
                 </Text>
+                {/* "Today" indicator */}
                 {isToday && !isSelected && (
                   <View
                     className="absolute bottom-1 h-1 w-1 rounded-full"
@@ -243,23 +258,29 @@ export default function HistoryScreen() {
   const today = useMemo(() => startOfDay(new Date()), []);
 
   const [selectedDate, setSelectedDate] = useState<Date>(today);
-  const [currentMonth, setCurrentMonth] = useState<Date>(today);
+  const [currentMonth, setCurrentMonth] = useState(today); // State for the viewed month
 
   const [dailyHistory, setDailyHistory] = useState<DailyHistoryUI | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // ----------------------------------------------------------------------
+  // 1. DATA FETCHING (Simulating API)
+  // ----------------------------------------------------------------------
 
   const fetchHistoryForDay = useCallback(async (date: Date) => {
     setIsLoading(true);
     setError(null);
     setDailyHistory(null);
 
+    // The mock service filters by date.
     try {
       const startDate = startOfDay(date).toISOString();
       const endDate = endOfDay(date).toISOString();
 
       const rawData = await medicationServiceMock.getMedicationHistory(startDate, endDate);
 
+      // Process raw data for the UI
       const processedData = processHistoryData(rawData);
       setDailyHistory(processedData);
     } catch (err) {
@@ -276,6 +297,11 @@ export default function HistoryScreen() {
     }
     fetchHistoryForDay(selectedDate);
   }, [selectedDate, fetchHistoryForDay]);
+
+  // ----------------------------------------------------------------------
+  // 2. CALENDAR LOGIC
+  // ----------------------------------------------------------------------
+
   const handleDateSelect = useCallback((date: Date) => {
     setSelectedDate(date);
   }, []);
@@ -283,6 +309,11 @@ export default function HistoryScreen() {
   const handleMonthChange = useCallback((date: Date) => {
     setCurrentMonth(date);
   }, []);
+
+  // ----------------------------------------------------------------------
+  // 3. RENDER
+  // ----------------------------------------------------------------------
+
   if (isLoading && !dailyHistory) {
     return (
       <View className="flex-1 items-center justify-center bg-background pt-20 dark:bg-background-dark">
@@ -303,6 +334,7 @@ export default function HistoryScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }}>
+        {/* Calendar Component */}
         <CalendarGrid
           currentMonth={currentMonth}
           selectedDate={selectedDate}
@@ -311,10 +343,12 @@ export default function HistoryScreen() {
           colors={colors}
         />
 
+        {/* Adherence Title */}
         <Text className="mb-4 mt-2 px-6 text-xl font-bold text-foreground dark:text-foreground-dark">
           Adesão
         </Text>
 
+        {/* Adherence Area (Metrics) */}
         {dailyHistory && (
           <View className="mb-8 flex-row justify-between px-4">
             <AdherenceCard
@@ -329,6 +363,8 @@ export default function HistoryScreen() {
             />
           </View>
         )}
+
+        {/* Details Title */}
         <View className="px-6">
           <Text className="mb-4 text-xl font-bold text-foreground dark:text-foreground-dark">
             Detalhes
