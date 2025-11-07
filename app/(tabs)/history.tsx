@@ -46,7 +46,7 @@ interface AdherenceCardProps {
  * Adherence Metrics Card (Doses Tomadas / Esquecidas)
  */
 const AdherenceCard = ({ title, count, color }: AdherenceCardProps) => (
-  <View className="mx-2 flex-1 rounded-lg border border-border bg-card p-4 dark:border-border-dark dark:bg-card-dark">
+  <View className="mx-2 flex-1 rounded-lg border border-primary bg-card p-4 dark:border-primary-dark dark:bg-card-dark">
     <Text className="mb-1 text-sm font-medium text-foreground dark:text-foreground-dark">
       {title}
     </Text>
@@ -226,8 +226,6 @@ const CalendarGrid = ({
           let backgroundColor = 'transparent';
           if (isSelected) {
             backgroundColor = colors.primary;
-          } else if (isCurrentMonth) {
-            backgroundColor = colors.card;
           }
 
           const textColor = isSelected ? colors.primaryForeground : colors.textPrimary;
