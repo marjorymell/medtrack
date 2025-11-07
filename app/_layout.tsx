@@ -36,7 +36,7 @@ export default function RootLayout() {
           <Stack.Screen name="add-medication" options={{ headerShown: false }} />
           <Stack.Screen name="reminder-notification" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ headerShown: false }} />
+          <Stack.Screen name="auth-screen" options={{ headerShown: false }} />
         </Stack>
         <PortalHost />
       </NavigationThemeProvider>

@@ -8,13 +8,10 @@ export default function LoginScreen() {
   const colors = useThemeColors();
 
   const handleLogin = () => {
-    console.log('[MOCK API] Usuário clicou em Entrar');
-    // TODO: inputs de email e senha
+    router.push({ pathname: '/auth-screen', params: { mode: 'login' } });
   };
-
   const handleCreateAccount = () => {
-    console.log('[MOCK API] Usuário clicou em Criar Conta');
-    // TODO: inputs de criação de conta
+    router.push({ pathname: '/auth-screen', params: { mode: 'signup' } });
   };
 
   const handleLoginWithoutAuth = () => {
