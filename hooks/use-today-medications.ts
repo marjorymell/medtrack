@@ -1,27 +1,32 @@
 import { useState, useEffect, useCallback } from 'react';
 import { TodayMedication, ApiResponse } from '@/types/medication';
 import { medicationServiceMock } from '@/mocks/medication-service-mock';
+import { medicationService } from '@/lib/services/medication-service';
+import { useAuth } from '@/contexts/auth-context';
+import { useMedicationsContext } from '@/contexts/medications-context';
 
 /**
  * Hook customizado para gerenciar os medicamentos do dia
  *
- * Atualmente usa o serviço MOCK. Quando o backend estiver pronto:
- * 1. Crie lib/services/medication-service.ts com a implementação real
- * 2. Importe o serviço real aqui
- * 3. Use variável de ambiente para alternar entre mock e real
+ * Usa serviço MOCK ou API real baseado na variável EXPO_PUBLIC_USE_MOCK_API
  */
 export function useTodayMedications() {
+  const { token } = useAuth();
   const [medications, setMedications] = useState<TodayMedication[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Determina qual serviço usar baseado na variável de ambiente
+  const USE_MOCK = process.env.EXPO_PUBLIC_USE_MOCK_API === 'true';
+  const service = USE_MOCK ? medicationServiceMock : medicationService;
+  const { invalidateMedications } = useMedicationsContext();
 
   const fetchMedications = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Usando serviço MOCK - trocar por serviço real quando backend estiver pronto
-      const data = await medicationServiceMock.getTodayMedications();
+      const data = await service.getTodayMedications();
       setMedications(data);
     } catch (err) {
       setError('Não foi possível carregar os medicamentos');
@@ -29,37 +34,35 @@ export function useTodayMedications() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [service]);
 
-  const confirmMedication = useCallback(async (scheduleId: string) => {
-    try {
-      // Usando serviço MOCK - trocar por serviço real quando backend estiver pronto
-      const result = await medicationServiceMock.confirmMedication(scheduleId);
+  const confirmMedication = useCallback(
+    async (scheduleId: string) => {
+      try {
+        const result = await service.confirmMedication(scheduleId);
 
-      if (result.success) {
-        // Atualizar estado local
-        setMedications((prev) =>
-          prev.map((med) =>
-            med.scheduleId === scheduleId
-              ? { ...med, status: 'confirmed' as const, taken: true }
-              : med
-          )
-        );
-      } else {
-        throw new Error(result.error?.message || 'Erro ao confirmar medicamento');
+        if (result.success) {
+          // Recarregar lista após confirmar
+          await fetchMedications();
+
+          // Invalidar contexto global para forçar atualização do estoque em outras telas
+          invalidateMedications();
+        } else {
+          throw new Error(result.error?.message || 'Erro ao confirmar medicamento');
+        }
+      } catch (err) {
+        setError('Não foi possível confirmar o medicamento');
+        console.error('Erro ao confirmar medicamento:', err);
+        throw err; // Re-throw para o componente tratar
       }
-    } catch (err) {
-      setError('Não foi possível confirmar o medicamento');
-      console.error('Erro ao confirmar medicamento:', err);
-      throw err; // Re-throw para o componente tratar
-    }
-  }, []);
+    },
+    [service, fetchMedications, invalidateMedications]
+  );
 
   const postponeMedication = useCallback(
     async (scheduleId: string, minutes = 30) => {
       try {
-        // Usando serviço MOCK - trocar por serviço real quando backend estiver pronto
-        const result = await medicationServiceMock.postponeMedication(scheduleId, minutes);
+        const result = await service.postponeMedication(scheduleId, minutes);
 
         if (result.success) {
           // Recarregar lista para pegar o novo horário
@@ -73,7 +76,7 @@ export function useTodayMedications() {
         throw err; // Re-throw para o componente tratar
       }
     },
-    [fetchMedications]
+    [service, fetchMedications]
   );
 
   useEffect(() => {

@@ -5,12 +5,15 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { FormField } from '@/components/ui/form-field';
 import { useThemeColors } from '@/hooks/use-theme-colors';
 import { ArrowLeft } from 'lucide-react-native';
+import { useAuth } from '@/contexts/auth-context';
+import { showToast } from '@/utils/toast';
 
 type AuthMode = 'login' | 'signup';
 
 export default function AuthScreen() {
   const router = useRouter();
   const colors = useThemeColors();
+  const { login, register, isLoading: authLoading } = useAuth();
 
   const { mode: initialModeParam } = useLocalSearchParams<{ mode: AuthMode }>();
 
@@ -18,28 +21,59 @@ export default function AuthScreen() {
     initialModeParam === 'signup' || initialModeParam === 'login' ? initialModeParam : 'login';
 
   const [mode, setMode] = useState<AuthMode>(initialMode);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState('');
 
   const isLogin = mode === 'login';
 
-  const handleSubmit = useCallback(() => {
-    if (isLogin) {
-      console.log(`[API] Tentando Logar: ${email}`);
-      router.replace('/(tabs)');
-    } else {
-      console.log(`[API] Tentando Cadastrar: ${email}`);
-      router.replace('/(tabs)');
+  const handleSubmit = useCallback(async () => {
+    if (!email || !password) {
+      showToast('Preencha todos os campos', 'error');
+      return;
     }
-  }, [email, isLogin, router]);
+
+    if (!isLogin && !name.trim()) {
+      showToast('Digite seu nome', 'error');
+      return;
+    }
+
+    if (!isLogin && password !== confirmPassword) {
+      showToast('As senhas não coincidem', 'error');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      if (isLogin) {
+        await login({ email, password });
+        router.replace('/(tabs)');
+      } else {
+        await register({
+          name: name.trim(),
+          email,
+          password,
+        });
+        router.replace('/(tabs)');
+      }
+    } catch (error: any) {
+      // Erro já tratado no contexto de autenticação
+      console.error('Erro na autenticação:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [email, password, confirmPassword, name, isLogin, login, register, router]);
 
   const toggleMode = useCallback(() => {
     setMode((prev) => (prev === 'login' ? 'signup' : 'login'));
     setEmail('');
     setPassword('');
     setConfirmPassword('');
+    setName('');
   }, []);
 
   return (
@@ -83,6 +117,18 @@ export default function AuthScreen() {
               autoComplete="email"
             />
 
+            {/* Name Field (Registration Mode Only) */}
+            {!isLogin && (
+              <FormField
+                label="Nome"
+                placeholder="Seu nome completo"
+                value={name}
+                onChangeText={setName}
+                autoCapitalize="words"
+                autoComplete="name"
+              />
+            )}
+
             <FormField
               label="Senha"
               placeholder="Digite sua senha"
@@ -109,11 +155,27 @@ export default function AuthScreen() {
             {/* Main Action Button */}
             <Pressable
               onPress={handleSubmit}
-              className="mb-3 h-12 w-full items-center justify-center rounded-lg bg-primary dark:bg-primary-dark"
+              disabled={isLoading || authLoading}
+              className={`mb-3 h-12 w-full items-center justify-center rounded-lg ${
+                isLoading || authLoading
+                  ? 'bg-secondary dark:bg-secondary-dark'
+                  : 'bg-primary dark:bg-primary-dark'
+              }`}
               accessibilityLabel={isLogin ? 'Entrar' : 'Cadastrar'}
               accessibilityRole="button">
-              <Text className="text-base font-bold text-primary-foreground dark:text-primary-foreground-dark">
-                {isLogin ? 'Entrar' : 'Criar Conta'}
+              <Text
+                className={`text-base font-bold ${
+                  isLoading || authLoading
+                    ? 'text-secondary-foreground dark:text-secondary-foreground-dark'
+                    : 'text-primary-foreground dark:text-primary-foreground-dark'
+                }`}>
+                {isLoading || authLoading
+                  ? isLogin
+                    ? 'Entrando...'
+                    : 'Criando conta...'
+                  : isLogin
+                    ? 'Entrar'
+                    : 'Criar Conta'}
               </Text>
             </Pressable>
 

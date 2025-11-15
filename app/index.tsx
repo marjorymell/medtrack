@@ -1,24 +1,53 @@
-import { View, ScrollView, Pressable, Image } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, ScrollView, Pressable, Image, ActivityIndicator } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useRouter } from 'expo-router';
 import { useThemeColors } from '@/hooks/use-theme-colors';
+import { useAuth } from '@/contexts/auth-context';
 
-export default function LoginScreen() {
+export default function IndexScreen() {
   const router = useRouter();
   const colors = useThemeColors();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // Redirecionamento automático baseado no estado de autenticação
+  useEffect(() => {
+    if (!isLoading) {
+      console.log('[IndexScreen] Verificando autenticação - isAuthenticated:', isAuthenticated);
+      if (isAuthenticated) {
+        console.log('[IndexScreen] Usuário autenticado, redirecionando para tabs');
+        router.replace('/(tabs)');
+      } else {
+        console.log('[IndexScreen] Usuário não autenticado, mostrando tela de boas-vindas');
+      }
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   const handleLogin = () => {
-    router.push({ pathname: '/auth-screen', params: { mode: 'login' } });
-  };
-  const handleCreateAccount = () => {
-    router.push({ pathname: '/auth-screen', params: { mode: 'signup' } });
+    router.push('/auth-screen?mode=login');
   };
 
-  const handleLoginWithoutAuth = () => {
-    console.log('[MOCK API] Usuário tentou entrar sem logar');
-    router.replace('/(tabs)');
-    console.log('[MOCK API] Acesso sem autenticação concedido');
+  const handleCreateAccount = () => {
+    router.push('/auth-screen?mode=signup');
   };
+
+  // Mostra loading enquanto verifica autenticação
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background dark:bg-background-dark">
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  // Se usuário estiver autenticado, não mostra nada (useEffect vai redirecionar)
+  if (isAuthenticated) {
+    return (
+      <View className="flex-1 items-center justify-center bg-background dark:bg-background-dark">
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <ScrollView
@@ -59,17 +88,6 @@ export default function LoginScreen() {
             <Text className="text-base font-semibold text-foreground dark:text-foreground-dark">
               Criar Conta
             </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={handleLoginWithoutAuth}
-            accessibilityLabel="Entrar sem logar"
-            accessibilityRole="button">
-            <View className="border-b pb-0.5" style={{ borderColor: colors.textSecondary }}>
-              <Text className="text-xs font-medium" style={{ color: colors.textSecondary }}>
-                Entrar sem logar
-              </Text>
-            </View>
           </Pressable>
         </View>
       </View>

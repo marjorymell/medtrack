@@ -1,32 +1,42 @@
-import { View, ScrollView, Pressable } from 'react-native';
+import { View, ScrollView, Pressable, Alert } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { ChevronRight, User, Bell, Download, LogOut } from 'lucide-react-native';
 import { useThemeColors } from '@/hooks/use-theme-colors';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useRouter } from 'expo-router';
+import { useUser } from '@/hooks/use-user';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function ProfileScreen() {
   const colors = useThemeColors();
   const router = useRouter();
+  const { user, loading } = useUser();
+  const { logout } = useAuth();
 
   const menuItems = [
     {
       id: 'personal-data',
       title: 'Dados pessoais',
       icon: User,
-      onPress: () => console.log('Dados pessoais'),
+      onPress: () => router.push('/edit-profile'),
     },
     {
       id: 'notifications',
       title: 'Preferências de notificação',
       icon: Bell,
-      onPress: () => console.log('Notificações'),
+      onPress: () => router.push('/notification-settings'),
     },
     {
       id: 'export',
       title: 'Exportar histórico',
       icon: Download,
-      onPress: () => console.log('Exportar'),
+      onPress: () => {
+        Alert.alert(
+          'Exportar Histórico',
+          'Esta funcionalidade será implementada em breve. Você poderá exportar seu histórico de medicações em formato PDF ou CSV.',
+          [{ text: 'OK' }]
+        );
+      },
     },
     {
       id: 'test-reminder',
@@ -35,6 +45,15 @@ export default function ProfileScreen() {
       onPress: () => router.push('/reminder-notification' as any),
     },
   ];
+
+  // Get user initials for avatar
+  const getUserInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase())
+      .slice(0, 2)
+      .join('');
+  };
 
   return (
     <ScrollView className="flex-1 bg-background dark:bg-background-dark">
@@ -49,16 +68,16 @@ export default function ProfileScreen() {
       <View className="items-center gap-4 px-4 py-6">
         <View className="h-32 w-32 items-center justify-center rounded-full bg-primary dark:bg-primary-dark">
           <Text className="text-[50px] font-bold leading-[50px] text-primary-foreground dark:text-primary-foreground-dark">
-            S
+            {user ? getUserInitials(user.name) : 'U'}
           </Text>
         </View>
 
         <View className="items-center gap-1">
           <Text className="text-[22px] font-bold leading-7 text-foreground dark:text-foreground-dark">
-            Sofia Almeida
+            {user?.name || 'Carregando...'}
           </Text>
           <Text className="text-base text-muted-foreground dark:text-muted-foreground-dark">
-            sofia.almeida@email.com
+            {user?.email || ''}
           </Text>
         </View>
       </View>
@@ -93,7 +112,10 @@ export default function ProfileScreen() {
         ))}
 
         <Pressable
-          onPress={() => console.log('Deslogar Usuário')}
+          onPress={async () => {
+            await logout();
+            router.replace('/');
+          }}
           className="mt-4 flex-row items-center justify-center py-3"
           accessibilityLabel="Sair da conta"
           accessibilityRole="button">
