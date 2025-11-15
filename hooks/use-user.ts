@@ -1,79 +1,91 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService, User } from '@/services/user-service';
 import { authService } from '@/services/auth-service';
 import { showToast } from '@/utils/toast';
+import { useAuth } from '@/contexts/auth-context';
 
 export function useUser() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { token, logout } = useAuth();
+  const queryClient = useQueryClient();
 
-  const fetchUser = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  // Query para buscar dados do usuário atual
+  const {
+    data: user,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: async () => {
+      if (!token) throw new Error('Token não disponível');
+      return await userService.getCurrentUser(token);
+    },
+    enabled: !!token, // Só executar se tiver token
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    gcTime: 10 * 60 * 1000, // 10 minutos
+  });
 
-      const token = await authService.getToken();
-      if (!token) {
-        setUser(null);
-        return;
-      }
+  // Mutation para atualizar usuário
+  const updateUserMutation = useMutation({
+    mutationFn: async ({
+      userId,
+      data,
+    }: {
+      userId: string;
+      data: { name?: string; email?: string };
+    }) => {
+      if (!token) throw new Error('Token não disponível');
+      return await userService.updateUser(userId, data, token);
+    },
+    onSuccess: (updatedUser) => {
+      // Atualizar cache com dados novos
+      queryClient.setQueryData(['current-user'], updatedUser);
+      showToast('Dados atualizados com sucesso', 'success');
+    },
+    onError: (err: any) => {
+      console.error('Erro ao atualizar usuário:', err);
+      showToast('Erro ao atualizar dados', 'error');
+    },
+  });
 
-      const userData = await userService.getCurrentUser(token);
-      setUser(userData);
-    } catch (err: any) {
-      console.error('Erro ao buscar dados do usuário:', err);
-      setError(err.message || 'Erro ao carregar dados do usuário');
-      showToast('Erro ao carregar dados do usuário', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Mutation para deletar usuário
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      if (!token) throw new Error('Token não disponível');
+      await userService.deleteUser(userId, token);
+    },
+    onSuccess: () => {
+      // Limpar cache e fazer logout
+      queryClient.removeQueries({ queryKey: ['current-user'] });
+      logout();
+      showToast('Conta deletada com sucesso', 'success');
+    },
+    onError: (err: any) => {
+      console.error('Erro ao deletar usuário:', err);
+      showToast('Erro ao deletar conta', 'error');
+    },
+  });
 
+  // Funções wrapper para manter compatibilidade
   const updateUser = async (data: { name?: string; email?: string }) => {
     if (!user) return;
-
-    try {
-      setLoading(true);
-      const updatedUser = await userService.updateUser(user.id, data);
-      setUser(updatedUser);
-      showToast('Dados atualizados com sucesso', 'success');
-    } catch (err: any) {
-      console.error('Erro ao atualizar usuário:', err);
-      setError(err.message || 'Erro ao atualizar dados');
-      showToast('Erro ao atualizar dados', 'error');
-    } finally {
-      setLoading(false);
-    }
+    return updateUserMutation.mutateAsync({ userId: user.id, data });
   };
 
   const deleteUser = async () => {
     if (!user) return;
-
-    try {
-      setLoading(true);
-      await userService.deleteUser(user.id);
-      setUser(null);
-      showToast('Conta deletada com sucesso', 'success');
-    } catch (err: any) {
-      console.error('Erro ao deletar usuário:', err);
-      setError(err.message || 'Erro ao deletar conta');
-      showToast('Erro ao deletar conta', 'error');
-    } finally {
-      setLoading(false);
-    }
+    return deleteUserMutation.mutateAsync(user.id);
   };
-
-  useEffect(() => {
-    fetchUser();
-  }, []);
 
   return {
     user,
-    loading,
-    error,
-    refetch: fetchUser,
+    loading: isLoading,
+    error: error?.message || null,
+    refetch,
     updateUser,
     deleteUser,
+    // Estados das mutations para feedback na UI
+    isUpdating: updateUserMutation.isPending,
+    isDeleting: deleteUserMutation.isPending,
   };
 }

@@ -4,7 +4,6 @@ import { NAV_THEME } from '@/lib/theme';
 import { ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/contexts/auth-context';
-import { MedicationsProvider } from '@/contexts/medications-context';
 import { AuthGuard } from '@/components/auth-guard';
 import { PortalHost } from '@rn-primitives/portal';
 import { Stack } from 'expo-router';
@@ -12,6 +11,8 @@ import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import { useFonts } from 'expo-font';
 import { Manrope_400Regular, Manrope_500Medium, Manrope_700Bold } from '@expo-google-fonts/manrope';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '@/lib/query-client';
 
 export const unstable_settings = {
   initialRouteName: 'index',
@@ -32,8 +33,8 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <MedicationsProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
           <NavigationThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
             <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
             <AuthGuard>
@@ -50,8 +51,8 @@ export default function RootLayout() {
             </AuthGuard>
             <PortalHost />
           </NavigationThemeProvider>
-        </MedicationsProvider>
-      </AuthProvider>
+        </AuthProvider>
+      </QueryClientProvider>
     </ThemeProvider>
   );
 }

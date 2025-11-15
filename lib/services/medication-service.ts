@@ -38,8 +38,9 @@ class MedicationService extends ApiService {
 
       const response = await this.post<void>('/history', {
         scheduleId,
-        action: 'taken',
-        confirmedAt: new Date().toISOString(),
+        action: 'TAKEN',
+        quantity: 1, // Quantidade padrão para decremento de estoque
+        notes: `Confirmado em ${new Date().toLocaleString('pt-BR')}`,
       });
 
       console.log('[MedicationService] ✓ Medicamento confirmado com sucesso');
@@ -68,7 +69,7 @@ class MedicationService extends ApiService {
 
       const response = await this.post<void>('/history', {
         scheduleId,
-        action: 'postponed',
+        action: 'POSTPONED',
         postponedTo: postponedTo.toISOString(),
       });
 

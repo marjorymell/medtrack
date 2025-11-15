@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { medicationService } from '@/lib/services/medication-service';
 import { showToast } from '@/utils/toast';
 import { useAuth } from '@/contexts/auth-context';
-import { useMedicationsContext } from '@/contexts/medications-context';
 
 export interface StockMedication {
   id: string;
@@ -13,12 +12,31 @@ export interface StockMedication {
 }
 
 export function useStock() {
-  const { token } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { medications, lastUpdated, needsRefresh, refreshCompleted } = useMedicationsContext();
+  const { isAuthenticated } = useAuth();
+  const queryClient = useQueryClient();
 
-  // Transformar medicamentos do contexto global para formato de estoque
+  // Usar a mesma query dos medicamentos para compartilhar cache
+  const {
+    data: medications = [],
+    isLoading: loading,
+    error,
+  } = useQuery({
+    queryKey: ['medications'],
+    queryFn: async () => {
+      const response = await medicationService.getMedications();
+      if (!response.success) {
+        throw new Error(response.error?.message || 'Erro na API');
+      }
+
+      const data = response.data as any;
+      return data.items && Array.isArray(data.items) ? data.items : data;
+    },
+    enabled: isAuthenticated,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    gcTime: 10 * 60 * 1000, // 10 minutos
+  });
+
+  // Transformar medicamentos para formato de estoque
   const stockMedications: StockMedication[] = medications.map((med: any) => ({
     id: med.id,
     name: med.name,
@@ -27,64 +45,72 @@ export function useStock() {
     expiresAt: med.expiresAt,
   }));
 
-  const updateStock = async (medicationId: string, newStock: number) => {
-    try {
+  // Mutation para atualizar estoque
+  const updateStockMutation = useMutation({
+    mutationFn: async ({ medicationId, newStock }: { medicationId: string; newStock: number }) => {
       await medicationService.updateMedicationStock(medicationId, newStock);
-
-      // Atualizar localmente no contexto global
-      // Como o contexto não tem uma função direta para atualizar estoque,
-      // vamos usar a função de atualização de medicamento
-      // Isso vai invalidar o contexto e forçar atualização em todas as telas
-
+    },
+    onSuccess: () => {
+      // Invalidar query de medicamentos para atualizar todas as telas
+      queryClient.invalidateQueries({ queryKey: ['medications'] });
       showToast('Estoque atualizado com sucesso', 'success');
-    } catch (err: any) {
+    },
+    onError: (err: any) => {
       console.error('Erro ao atualizar estoque:', err);
       showToast('Erro ao atualizar estoque', 'error');
-      throw err;
-    }
+    },
+  });
+
+  // Query para medicamentos com estoque baixo
+  const { data: lowStockMedications = [], refetch: refetchLowStock } = useQuery({
+    queryKey: ['low-stock-medications'],
+    queryFn: async () => {
+      const response = await medicationService.getLowStockMedications(5);
+      return response.data || [];
+    },
+    enabled: isAuthenticated,
+    staleTime: 10 * 60 * 1000, // 10 minutos
+  });
+
+  // Query para medicamentos sem estoque
+  const { data: outOfStockMedications = [], refetch: refetchOutOfStock } = useQuery({
+    queryKey: ['out-of-stock-medications'],
+    queryFn: async () => {
+      const response = await medicationService.getOutOfStockMedications();
+      return response.data || [];
+    },
+    enabled: isAuthenticated,
+    staleTime: 10 * 60 * 1000, // 10 minutos
+  });
+
+  // Função wrapper para manter compatibilidade
+  const updateStock = async (medicationId: string, newStock: number) => {
+    return updateStockMutation.mutateAsync({ medicationId, newStock });
   };
 
   const getLowStockMedications = async (threshold: number = 5) => {
-    try {
-      const response = await medicationService.getLowStockMedications(threshold);
-      return response.data || [];
-    } catch (err: any) {
-      console.error('Erro ao buscar medicamentos com estoque baixo:', err);
-      throw err;
-    }
+    // Refetch se necessário, mas geralmente os dados já estarão no cache
+    await refetchLowStock();
+    return lowStockMedications;
   };
 
   const getOutOfStockMedications = async () => {
-    try {
-      const response = await medicationService.getOutOfStockMedications();
-      return response.data || [];
-    } catch (err: any) {
-      console.error('Erro ao buscar medicamentos sem estoque:', err);
-      throw err;
-    }
+    // Refetch se necessário, mas geralmente os dados já estarão no cache
+    await refetchOutOfStock();
+    return outOfStockMedications;
   };
-
-  useEffect(() => {
-    // Hook useStock agora usa apenas dados do contexto global
-    // Não precisa fazer fetch próprio, pois o contexto já tem os dados
-    setLoading(false);
-  }, []);
-
-  // Escutar mudanças no contexto global para atualizar automaticamente
-  useEffect(() => {
-    if (needsRefresh) {
-      console.log('[useStock] Contexto global precisa de refresh, dados já estão atualizados');
-      refreshCompleted();
-    }
-  }, [needsRefresh, refreshCompleted]);
 
   return {
     medications: stockMedications,
     loading,
-    error,
-    refetch: () => {}, // Não precisa mais, dados vêm do contexto global
+    error: error?.message || null,
+    refetch: () => queryClient.invalidateQueries({ queryKey: ['medications'] }),
     updateStock,
     getLowStockMedications,
     getOutOfStockMedications,
+    lowStockMedications,
+    outOfStockMedications,
+    // Expor estado da mutation para feedback na UI
+    isUpdatingStock: updateStockMutation.isPending,
   };
 }

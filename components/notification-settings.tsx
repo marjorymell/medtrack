@@ -5,7 +5,7 @@ import { useThemeColors } from '@/hooks/use-theme-colors';
 import { useAuth } from '@/contexts/auth-context';
 import { useNotificationPermissions } from '../hooks/use-notification-permissions';
 import { useDeviceToken } from '../hooks/use-device-token';
-import { notificationService } from '../services/notification-service';
+import { useNotificationSettings } from '../hooks/use-notification-settings';
 import { NotificationToggle, PushNotificationToggle } from './notification-toggle';
 import { QuietHoursPicker } from './quiet-hours-picker';
 import type { NotificationSettings } from '../types/notification';
@@ -18,9 +18,17 @@ export function NotificationSettingsScreen() {
   const { user } = useAuth();
   const { permissionStatus, requestPermissions } = useNotificationPermissions();
   const { deviceToken, registerToken, getDeviceToken, isLoading: tokenLoading } = useDeviceToken();
+  const {
+    settings: apiSettings,
+    isLoading: settingsLoading,
+    updateSettings,
+    registerDeviceToken,
+    isUpdating,
+    isRegisteringDevice,
+  } = useNotificationSettings();
   const router = useRouter();
 
-  // Estado das configurações
+  // Estado local das configurações (fallback para valores padrão)
   const [settings, setSettings] = useState<NotificationSettings>({
     enablePush: false,
     enableEmail: false,
@@ -31,70 +39,27 @@ export function NotificationSettingsScreen() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  // Função para carregar configurações - memoizada para evitar recriações
-  const loadSettings = useCallback(async () => {
-    try {
-      console.log('[NotificationSettings] === INICIANDO CARREGAMENTO DE CONFIGURAÇÕES ===');
-      console.log('[NotificationSettings] Usuário autenticado:', !!user);
-      console.log('[NotificationSettings] User ID:', user?.id);
-      console.log('[NotificationSettings] Estado atual antes do carregamento:', settings);
-
-      // Verificar se usuário está autenticado
-      if (!user?.id) {
-        console.warn('[NotificationSettings] Usuário não autenticado, pulando carregamento');
-        return;
-      }
-
-      setIsLoading(true);
-
-      // Buscar configurações do backend
-      console.log('[NotificationSettings] Fazendo chamada para API...');
-      const userSettings = await notificationService.getNotificationSettings();
-      console.log('[NotificationSettings] Resposta da API recebida:', userSettings);
-
-      const newSettings = {
-        enablePush: userSettings.enablePush,
-        enableEmail: userSettings.enableEmail,
-        reminderBefore: userSettings.reminderBefore,
-        quietHoursStart: userSettings.quietHoursStart || '22:00',
-        quietHoursEnd: userSettings.quietHoursEnd || '08:00',
-      };
-
-      console.log('[NotificationSettings] Aplicando novas configurações:', newSettings);
-      setSettings(newSettings);
-
-      console.log('[NotificationSettings] Configurações aplicadas com sucesso');
-    } catch (error) {
-      console.error('[NotificationSettings] Erro ao carregar configurações:', error);
-      console.error('[NotificationSettings] Detalhes do erro:', error);
-      Alert.alert('Erro', 'Não foi possível carregar as configurações. Usando valores padrão.');
-
-      // Fallback para valores padrão em caso de erro
-      const fallbackSettings = {
+  // Sincronizar estado local com dados da API
+  useEffect(() => {
+    if (apiSettings) {
+      setSettings({
+        enablePush: apiSettings.enablePush,
+        enableEmail: apiSettings.enableEmail,
+        reminderBefore: apiSettings.reminderBefore,
+        quietHoursStart: apiSettings.quietHoursStart || '22:00',
+        quietHoursEnd: apiSettings.quietHoursEnd || '08:00',
+      });
+    } else if (!settingsLoading && !apiSettings) {
+      // Fallback para valores padrão se não conseguir carregar da API
+      setSettings({
         enablePush: permissionStatus.granted,
         enableEmail: false,
         reminderBefore: 15,
         quietHoursStart: '22:00',
         quietHoursEnd: '08:00',
-      };
-      console.log('[NotificationSettings] Aplicando configurações de fallback:', fallbackSettings);
-      setSettings(fallbackSettings);
-    } finally {
-      setIsLoading(false);
+      });
     }
-  }, [permissionStatus.granted, user?.id]);
-
-  // Carregar configurações quando o componente montar e usuário estiver autenticado
-  useEffect(() => {
-    console.log('[NotificationSettings] useEffect executado - user?.id:', user?.id);
-
-    if (user?.id) {
-      console.log('[NotificationSettings] Usuário autenticado, carregando configurações...');
-      loadSettings();
-    } else {
-      console.log('[NotificationSettings] Usuário não autenticado ainda, aguardando...');
-    }
-  }, [user?.id]); // Executa quando user mudar
+  }, [apiSettings, settingsLoading, permissionStatus.granted]);
 
   const updateSetting = async <K extends keyof NotificationSettings>(
     key: K,
@@ -106,8 +71,12 @@ export function NotificationSettingsScreen() {
       const newSettings = { ...settings, [key]: value };
       setSettings(newSettings);
 
-      // Salvar no backend
-      await notificationService.updateNotificationSettings(newSettings);
+      // Salvar no backend usando o hook
+      await updateSettings({
+        ...newSettings,
+        quietHoursStart: newSettings.quietHoursStart || null,
+        quietHoursEnd: newSettings.quietHoursEnd || null,
+      });
 
       console.log(`Configuração ${String(key)} atualizada:`, value);
     } catch (error) {
@@ -142,7 +111,11 @@ export function NotificationSettingsScreen() {
         const token = await getDeviceToken();
         if (token && user?.id) {
           console.log('[NotificationSettings] Registrando token para usuário:', user.id);
-          await registerToken(token, user.id);
+          await registerDeviceToken({
+            token: token.token,
+            platform: token.platform,
+            userId: user.id,
+          });
         } else {
           console.warn('[NotificationSettings] Token ou user ID não disponível:', {
             token: !!token,
@@ -216,7 +189,7 @@ export function NotificationSettingsScreen() {
                 backgroundColor: settings.reminderBefore === minutes ? colors.primary : colors.card,
                 borderColor: settings.reminderBefore === minutes ? colors.primary : colors.border,
               }}
-              disabled={isLoading}>
+              disabled={isLoading || isUpdating}>
               <Text
                 className={`text-sm font-medium ${
                   settings.reminderBefore === minutes ? 'text-white' : ''

@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { TodayMedication, ApiResponse } from '@/types/medication';
 import { medicationServiceMock } from '@/mocks/medication-service-mock';
 import { medicationService } from '@/lib/services/medication-service';
 import { useAuth } from '@/contexts/auth-context';
-import { useMedicationsContext } from '@/contexts/medications-context';
 import { showToast } from '@/utils/toast';
 
 /**
@@ -13,82 +12,88 @@ import { showToast } from '@/utils/toast';
  */
 export function useTodayMedications() {
   const { token } = useAuth();
-  const [medications, setMedications] = useState<TodayMedication[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   // Determina qual serviço usar baseado na variável de ambiente
   const USE_MOCK = process.env.EXPO_PUBLIC_USE_MOCK_API === 'true';
   const service = USE_MOCK ? medicationServiceMock : medicationService;
-  const { invalidateMedications } = useMedicationsContext();
 
-  const fetchMedications = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
+  // Query para buscar medicamentos do dia
+  const {
+    data: medications = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ['today-medications'],
+    queryFn: async () => {
       const data = await service.getTodayMedications();
-      setMedications(data);
-    } catch (err) {
-      setError('Não foi possível carregar os medicamentos');
-      console.error('Erro ao buscar medicamentos:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [service]);
-
-  const confirmMedication = useCallback(
-    async (scheduleId: string) => {
-      try {
-        const result = await service.confirmMedication(scheduleId);
-
-        if (result.success) {
-          // Recarregar lista após confirmar
-          await fetchMedications();
-
-          showToast('Medicamento confirmado com sucesso!', 'success');
-        } else {
-          throw new Error(result.error?.message || 'Erro ao confirmar medicamento');
-        }
-      } catch (err) {
-        setError('Não foi possível confirmar o medicamento');
-        console.error('Erro ao confirmar medicamento:', err);
-        throw err; // Re-throw para o componente tratar
-      }
+      return data;
     },
-    [service, fetchMedications, invalidateMedications]
-  );
+    enabled: !!token, // Só executar se tiver token
+    staleTime: 2 * 60 * 1000, // 2 minutos (dados do dia mudam com frequência)
+    gcTime: 5 * 60 * 1000, // 5 minutos
+  });
 
-  const postponeMedication = useCallback(
-    async (scheduleId: string, minutes = 30) => {
-      try {
-        const result = await service.postponeMedication(scheduleId, minutes);
-
-        if (result.success) {
-          // Recarregar lista para pegar o novo horário
-          await fetchMedications();
-        } else {
-          throw new Error(result.error?.message || 'Erro ao adiar medicamento');
-        }
-      } catch (err) {
-        setError('Não foi possível adiar o medicamento');
-        console.error('Erro ao adiar medicamento:', err);
-        throw err; // Re-throw para o componente tratar
+  // Mutation para confirmar medicamento
+  const confirmMedicationMutation = useMutation({
+    mutationFn: async (scheduleId: string) => {
+      const result = await service.confirmMedication(scheduleId);
+      if (!result.success) {
+        throw new Error(result.error?.message || 'Erro ao confirmar medicamento');
       }
+      return result;
     },
-    [service, fetchMedications]
-  );
+    onSuccess: () => {
+      // Invalidar queries relacionadas
+      queryClient.invalidateQueries({ queryKey: ['today-medications'] });
+      queryClient.invalidateQueries({ queryKey: ['medications'] });
+      showToast('Medicamento confirmado com sucesso!', 'success');
+    },
+    onError: (err: any) => {
+      console.error('Erro ao confirmar medicamento:', err);
+      showToast('Não foi possível confirmar o medicamento', 'error');
+    },
+  });
 
-  useEffect(() => {
-    fetchMedications();
-  }, [fetchMedications]);
+  // Mutation para adiar medicamento
+  const postponeMedicationMutation = useMutation({
+    mutationFn: async ({ scheduleId, minutes = 30 }: { scheduleId: string; minutes?: number }) => {
+      const result = await service.postponeMedication(scheduleId, minutes);
+      if (!result.success) {
+        throw new Error(result.error?.message || 'Erro ao adiar medicamento');
+      }
+      return result;
+    },
+    onSuccess: () => {
+      // Invalidar queries relacionadas
+      queryClient.invalidateQueries({ queryKey: ['today-medications'] });
+      queryClient.invalidateQueries({ queryKey: ['medications'] });
+    },
+    onError: (err: any) => {
+      console.error('Erro ao adiar medicamento:', err);
+      showToast('Não foi possível adiar o medicamento', 'error');
+    },
+  });
+
+  // Funções wrapper para manter compatibilidade
+  const confirmMedication = async (scheduleId: string) => {
+    return confirmMedicationMutation.mutateAsync(scheduleId);
+  };
+
+  const postponeMedication = async (scheduleId: string, minutes = 30) => {
+    return postponeMedicationMutation.mutateAsync({ scheduleId, minutes });
+  };
 
   return {
     medications,
     isLoading,
-    error,
-    refetch: fetchMedications,
+    error: error?.message || null,
+    refetch,
     confirmMedication,
     postponeMedication,
+    // Expor estados das mutations para feedback na UI
+    isConfirming: confirmMedicationMutation.isPending,
+    isPostponing: postponeMedicationMutation.isPending,
   };
 }

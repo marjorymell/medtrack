@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { medicationService } from '@/lib/services/medication-service';
 import { showToast } from '@/utils/toast';
 import { useAuth } from '@/contexts/auth-context';
@@ -16,14 +16,10 @@ export interface CreateMedicationData {
 
 export function useCreateMedication() {
   const { token } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const createMedication = async (data: CreateMedicationData) => {
-    try {
-      setLoading(true);
-      setError(null);
-
+  const createMedicationMutation = useMutation({
+    mutationFn: async (data: CreateMedicationData) => {
       // Preparar dados para o backend (enviar enum values diretamente)
       const medicationData = {
         name: data.name,
@@ -38,22 +34,29 @@ export function useCreateMedication() {
 
       // Chamar API real
       const response = await medicationService.createMedication(medicationData);
-
+      return response;
+    },
+    onSuccess: () => {
+      // Invalidar queries relacionadas para atualizar a UI automaticamente
+      queryClient.invalidateQueries({ queryKey: ['today-medications'] });
+      queryClient.invalidateQueries({ queryKey: ['medications'] });
       showToast('Medicamento criado com sucesso!', 'success');
-      return { success: true, data: response.data };
-    } catch (err: any) {
+    },
+    onError: (err: any) => {
       console.error('Erro ao criar medicamento:', err);
-      setError(err.message || 'Erro ao criar medicamento');
       showToast('Erro ao criar medicamento', 'error');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
+    },
+  });
+
+  // Wrapper para manter compatibilidade com código existente
+  const createMedication = async (data: CreateMedicationData) => {
+    return createMedicationMutation.mutateAsync(data);
   };
 
   return {
     createMedication,
-    loading,
-    error,
+    loading: createMedicationMutation.isPending,
+    error: createMedicationMutation.error?.message || null,
+    isCreating: createMedicationMutation.isPending,
   };
 }
