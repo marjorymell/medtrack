@@ -19,9 +19,11 @@ interface MedicationsContextType {
   // Estado global
   medications: Medication[];
   lastUpdated: Date | null;
+  needsRefresh: boolean;
 
   // Ações
   invalidateMedications: () => void;
+  refreshCompleted: () => void;
   updateMedicationLocally: (medicationId: string, updates: Partial<Medication>) => void;
   addMedicationLocally: (medication: Medication) => void;
   removeMedicationLocally: (medicationId: string) => void;
@@ -40,12 +42,17 @@ interface MedicationsProviderProps {
 export function MedicationsProvider({ children }: MedicationsProviderProps) {
   const [medications, setMedications] = useState<Medication[]>([]);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [needsRefresh, setNeedsRefresh] = useState<boolean>(false);
 
   const invalidateMedications = useCallback(() => {
     console.log('[MedicationsContext] Invalidando cache de medicamentos');
     setLastUpdated(new Date());
+    setNeedsRefresh(true);
+  }, []);
+
+  const refreshCompleted = useCallback(() => {
+    console.log('[MedicationsContext] Refresh concluído');
+    setNeedsRefresh(false);
   }, []);
 
   const updateMedicationLocally = useCallback(
@@ -98,7 +105,9 @@ export function MedicationsProvider({ children }: MedicationsProviderProps) {
   const value: MedicationsContextType = {
     medications,
     lastUpdated,
+    needsRefresh,
     invalidateMedications,
+    refreshCompleted,
     updateMedicationLocally,
     addMedicationLocally,
     removeMedicationLocally,

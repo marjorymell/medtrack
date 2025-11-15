@@ -28,7 +28,16 @@ export function useMedications() {
     updateMedicationLocally,
     addMedicationLocally,
     removeMedicationLocally,
+    refreshCompleted
   } = useMedicationsContext();
+
+  // Função para sincronizar dados da API com o contexto global
+  const syncMedicationsWithContext = useCallback((apiMedications: Medication[]) => {
+    // Limpar medicamentos existentes no contexto
+    medications.forEach(med => removeMedicationLocally(med.id));
+    // Adicionar medicamentos da API
+    apiMedications.forEach(med => addMedicationLocally(med));
+  }, [medications, removeMedicationLocally, addMedicationLocally]);
 
   const fetchMedications = async () => {
     console.log('[useMedications] ===== fetchMedications INICIADO =====');
@@ -93,10 +102,10 @@ export function useMedications() {
       }
 
       console.log('[useMedications] Definindo medicamentos:', medicationsData.length, 'itens');
-      // Atualizar contexto global com dados frescos
-      // Como não temos uma função direta para setar todos os medicamentos,
-      // vamos invalidar para forçar recarregamento nas outras telas
-      invalidateMedications();
+      // Sincronizar com contexto global
+      syncMedicationsWithContext(medicationsData);
+      // Marcar que o refresh foi concluído
+      refreshCompleted();
       console.log('[useMedications] ===== fetchMedications CONCLUÍDO =====');
     } catch (err: any) {
       console.error('[useMedications] Erro completo:', err);
@@ -133,9 +142,6 @@ export function useMedications() {
       // Recarregar medicamentos da API após criar
       await fetchMedications();
 
-      // Invalidar contexto global para forçar atualização em outras telas
-      invalidateMedications();
-
       showToast('Medicamento criado com sucesso', 'success');
       return response.data;
     } catch (err: any) {
@@ -154,9 +160,6 @@ export function useMedications() {
       // Recarregar medicamentos da API após atualizar
       await fetchMedications();
       console.log(`[useMedications] Fetch concluído após update`);
-
-      // Invalidar contexto global para forçar atualização em outras telas
-      invalidateMedications();
 
       showToast('Medicamento atualizado com sucesso', 'success');
       return response.data;
@@ -183,9 +186,6 @@ export function useMedications() {
       await fetchMedications();
       console.log(`[useMedications] Fetch concluído após delete`);
 
-      // Invalidar contexto global para forçar atualização em outras telas
-      invalidateMedications();
-
       showToast('Medicamento removido com sucesso', 'success');
     } catch (err: any) {
       console.error('[useMedications] Erro ao deletar medicamento:', err);
@@ -206,9 +206,6 @@ export function useMedications() {
       // Recarregar medicamentos da API após atualizar estoque
       await fetchMedications();
       console.log(`[useMedications] fetchMedications concluído após updateStock`);
-
-      // Invalidar contexto global para forçar atualização em outras telas
-      invalidateMedications();
 
       showToast('Estoque atualizado com sucesso', 'success');
     } catch (err: any) {

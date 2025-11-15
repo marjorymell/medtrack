@@ -4,6 +4,7 @@ import { medicationServiceMock } from '@/mocks/medication-service-mock';
 import { medicationService } from '@/lib/services/medication-service';
 import { useAuth } from '@/contexts/auth-context';
 import { useMedicationsContext } from '@/contexts/medications-context';
+import { showToast } from '@/utils/toast';
 
 /**
  * Hook customizado para gerenciar os medicamentos do dia
@@ -45,8 +46,7 @@ export function useTodayMedications() {
           // Recarregar lista após confirmar
           await fetchMedications();
 
-          // Invalidar contexto global para forçar atualização do estoque em outras telas
-          invalidateMedications();
+          showToast('Medicamento confirmado com sucesso!', 'success');
         } else {
           throw new Error(result.error?.message || 'Erro ao confirmar medicamento');
         }
