@@ -161,7 +161,17 @@ MedTrack é um aplicativo móvel multiplataforma (Android e iOS) para gerenciame
 - Tipos TypeScript bem definidos
 - ESLint/Prettier configurados
 - **60 testes Jest no backend (100% passando)**
+- **109 testes Jest no frontend (100% passando)**
 - **Documentação Swagger 100% completa**
+- **Documentação completa de testes frontend** (guias, templates, referências)
+
+**Testes Frontend Implementados:**
+
+- **Hooks**: use-medications (15 testes), use-auth-mutations (8 testes), use-notification-permissions (10 testes), use-today-medications (4 testes)
+- **Componentes**: medication-card (12 testes), button (15 testes)
+- **Serviços**: auth-service (18 testes)
+- **Utils**: toast (8 testes)
+- **Infraestrutura**: Jest + React Native Testing Library, mocks globais, QueryClient wrappers, documentação completa
 
 **Arquitetura Backend Refatorada (Nov 2025):**
 
@@ -206,12 +216,18 @@ MedTrack é um aplicativo móvel multiplataforma (Android e iOS) para gerenciame
 **Qualidade e Testes:**
 
 - **✅ 60 testes Jest no backend (100% passando)**
-- Estrutura de testes configurada (Jest + Supertest)
-- Testes de integração para todas as rotas da API
-- **Cobertura completa:** medications, users, schedules, notifications, history
-- Testes automatizados frontend pendentes (unitários, integração)
+- **✅ 109 testes Jest no frontend (100% passando)**
+- Estrutura de testes configurada (Jest + React Native Testing Library)
+- Testes de integração para todas as rotas da API (backend)
+- **Cobertura backend completa:** medications, users, schedules, notifications, history
+- **Cobertura frontend implementada:** hooks (use-medications, use-auth-mutations, use-notification-permissions, use-today-medications), componentes (medication-card, button), serviços (auth-service), utils (toast)
+- **Documentação de testes:** FRONTEND_TESTING.md, FRONTEND_TESTING_SUMMARY.md, templates e guias
+- **Testes de telas/screens pendentes** (auth-screen, home, history, stock, profile)
+- **Testes de hooks adicionais pendentes** (use-stock, use-notification-scheduler, use-device-token, use-user)
+- **Testes de componentes adicionais pendentes** (home-header, auth-guard, theme-toggle, form-field, icon, text)
+- **Testes de serviços adicionais pendentes** (medication-service, notification-service, user-service)
 - Testes E2E com dispositivos pendentes
-- Linting e formatação automatizados
+- Cobertura de código >= 70% pendente
 
 **Produção e Deploy:**
 
@@ -867,18 +883,18 @@ router.back();
 
 ### 🟡 MÉDIA PRIORIDADE (Pós-MVP)
 
-6. **Testes Automatizados** - Cobertura mínima de 70% em frontend e backend
-7. **Deploy e CI/CD** - Configuração para produção
-8. **Modo Offline** - Funcionalidade sem conexão
-9. **Analytics** - Métricas de uso e adesão
-10. **Suporte Multilíngue** - Internacionalização
+6. **Completar Testes Frontend** - Implementar testes de telas (auth, home, history, stock, profile)
+7. **Aumentar Cobertura de Testes** - Atingir 70% de cobertura em frontend
+8. **Deploy e CI/CD** - Configuração para produção
+9. **Modo Offline** - Funcionalidade sem conexão
+10. **Analytics** - Métricas de uso e adesão
+11. **Suporte Multilíngue** - Internacionalização
 
 ### 🟢 BAIXA PRIORIDADE (Features Avançadas)
 
-11. **Acessibilidade Avançada** - Suporte completo a screen readers
-12. **Performance Optimization** - Otimizações de renderização
-13. **Backup e Recuperação** - Sincronização de dados
-14. **Rate Limiting** - Proteção contra abuso da API
+12. **Acessibilidade Avançada** - Suporte completo a screen readers
+13. **Performance Optimization** - Otimizações de renderização
+14. **Backup e Recuperação** - Sincronização de dados
 15. **Monitoramento** - Logs e alertas em produção
 
 ## Recursos de Referência
@@ -916,11 +932,20 @@ router.back();
 - **Documentação inclui:** schemas, exemplos, códigos de erro, autenticação
 - **Como usar:** Todos os endpoints têm exemplos de request/response prontos para teste
 
+### Documentação de Testes Frontend
+
+- **`docs/FRONTEND_TESTING.md`** - Guia completo de testes (3000+ linhas)
+- **`docs/FRONTEND_TESTING_SUMMARY.md`** - Resumo executivo de testes
+- **`__tests__/README.md`** - Guia rápido para executar testes
+- **`__tests__/TEMPLATES.md`** - Templates reutilizáveis (6 templates)
+- **`TESTING_QUICK_REF.md`** - Referência rápida de comandos
+- **109 testes implementados** - hooks, componentes, serviços, utils
+
 ---
 
 **Última atualização**: 22/11/2025  
-**Versão**: 5.0 - Backend 100% documentado e testado + Arquitetura refatorada  
-**Status do Projeto**: Backend completo com 37 rotas documentadas e 60 testes passando  
+**Versão**: 6.0 - Frontend com 109 testes implementados (100% passando)  
+**Status do Projeto**: Backend completo (37 rotas, 60 testes) + Frontend com testes automatizados (109 testes)  
 **Equipe**: Marjory Mel (PO + Frontend), Weslley da Silva (FullStack + CI/CD), Victor Gabriel Lucio (Backend), Diego Kiyoshi (Backend)
 
 ## Arquitetura do Projeto

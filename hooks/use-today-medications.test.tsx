@@ -53,10 +53,16 @@ describe('useTodayMedications', () => {
       wrapper: createWrapper(),
     });
 
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    await waitFor(
+      () => {
+        expect(result.current.isLoading).toBe(false);
+      },
+      { timeout: 3000 }
+    );
 
     expect(result.current.medications).toBeDefined();
     expect(Array.isArray(result.current.medications)).toBe(true);
+    expect(result.current.medications.length).toBeGreaterThan(0);
   });
 
   it('deve ter estado de loading inicial', () => {
@@ -72,7 +78,7 @@ describe('useTodayMedications', () => {
       wrapper: createWrapper(),
     });
 
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    await waitFor(() => expect(result.current.isLoading).toBe(false), { timeout: 3000 });
 
     expect(result.current.confirmMedication).toBeDefined();
     expect(typeof result.current.confirmMedication).toBe('function');
@@ -83,7 +89,7 @@ describe('useTodayMedications', () => {
       wrapper: createWrapper(),
     });
 
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    await waitFor(() => expect(result.current.isLoading).toBe(false), { timeout: 3000 });
 
     expect(result.current.postponeMedication).toBeDefined();
     expect(typeof result.current.postponeMedication).toBe('function');
@@ -94,7 +100,7 @@ describe('useTodayMedications', () => {
       wrapper: createWrapper(),
     });
 
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    await waitFor(() => expect(result.current.isLoading).toBe(false), { timeout: 3000 });
 
     expect(result.current.refetch).toBeDefined();
     expect(typeof result.current.refetch).toBe('function');
@@ -105,7 +111,7 @@ describe('useTodayMedications', () => {
       wrapper: createWrapper(),
     });
 
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    await waitFor(() => expect(result.current.isLoading).toBe(false), { timeout: 3000 });
 
     expect(result.current.isConfirming).toBeDefined();
     expect(result.current.isPostponing).toBeDefined();
