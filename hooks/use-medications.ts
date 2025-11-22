@@ -51,8 +51,10 @@ export function useMedications() {
       return medicationsData;
     },
     enabled: isAuthenticated, // Só executar se estiver autenticado
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 1 * 60 * 1000, // 1 minuto (reduzido para atualizar mais frequentemente)
     gcTime: 10 * 60 * 1000, // 10 minutos
+    refetchOnMount: true, // IMPORTANTE: Sempre refetch ao montar o componente
+    refetchOnWindowFocus: false, // Mobile não precisa
   });
 
   // Mutation para criar medicamento

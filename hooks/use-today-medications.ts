@@ -27,12 +27,16 @@ export function useTodayMedications() {
   } = useQuery({
     queryKey: ['today-medications'],
     queryFn: async () => {
+      console.log('[useTodayMedications] Fazendo chamada para getTodayMedications...');
       const data = await service.getTodayMedications();
+      console.log('[useTodayMedications] Retornando', data?.length || 0, 'medicamentos');
       return data;
     },
     enabled: !!token, // Só executar se tiver token
-    staleTime: 2 * 60 * 1000, // 2 minutos (dados do dia mudam com frequência)
+    staleTime: 1 * 60 * 1000, // 1 minuto (reduzido para atualizar mais frequentemente)
     gcTime: 5 * 60 * 1000, // 5 minutos
+    refetchOnMount: true, // IMPORTANTE: Sempre refetch ao montar o componente
+    refetchOnWindowFocus: false, // Mobile não precisa
   });
 
   // Mutation para confirmar medicamento

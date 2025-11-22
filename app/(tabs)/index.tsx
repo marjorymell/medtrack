@@ -4,9 +4,10 @@ import { MedicationCard } from '@/components/medication-card';
 import { useTodayMedications } from '@/hooks/use-today-medications';
 import { useThemeColors } from '@/hooks/use-theme-colors';
 import { showToast } from '@/utils/toast';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Bell, CheckCircle, Clock, AlertCircle, TrendingUp } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 
 const HomeTitleHeader = ({ onNotificationPress }: { onNotificationPress: () => void }) => {
   const colors = useThemeColors();
@@ -76,6 +77,19 @@ export default function HomeScreen() {
 
   const [refreshing, setRefreshing] = useState(false);
 
+  // Filtrar apenas medicamentos pending e confirmed (ocultar missed)
+  const activeMedications = medications.filter(
+    (med) => med.status === 'pending' || med.status === 'confirmed'
+  );
+
+  // Refetch quando a tela receber foco
+  useFocusEffect(
+    useCallback(() => {
+      console.log('[HomeScreen] Tela recebeu foco, fazendo refetch...');
+      refetch();
+    }, [refetch])
+  );
+
   const handleRefresh = async () => {
     setRefreshing(true);
     await refetch();
@@ -123,7 +137,7 @@ export default function HomeScreen() {
           {error}
         </Text>
         <Pressable
-          onPress={refetch}
+          onPress={() => refetch()}
           className="rounded-lg bg-primary px-6 py-3 dark:bg-primary-dark">
           <Text className="font-bold text-primary-foreground dark:text-primary-foreground-dark">
             Tentar Novamente
@@ -138,7 +152,7 @@ export default function HomeScreen() {
       <HomeTitleHeader onNotificationPress={handleNotificationPress} />
 
       <FlatList
-        data={medications}
+        data={activeMedications}
         keyExtractor={(item) => item.scheduleId}
         renderItem={({ item }) => (
           <MedicationCard medication={item} onConfirm={handleConfirm} onPostpone={handlePostpone} />
@@ -151,7 +165,7 @@ export default function HomeScreen() {
           />
         }
         ListHeaderComponent={
-          medications.length > 0 ? <TodayStats medications={medications} /> : null
+          activeMedications.length > 0 ? <TodayStats medications={activeMedications} /> : null
         }
         ListEmptyComponent={
           <View className="flex-1 items-center justify-center py-20">
