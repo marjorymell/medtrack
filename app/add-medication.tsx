@@ -30,6 +30,7 @@ interface AddMedicationFormData {
   name: string;
   dosage: string;
   frequency: string;
+  startTime: string;
   expiryDate: string;
   stock: string;
   notes: string;
@@ -431,6 +432,13 @@ export default function AddMedicationScreen() {
                 onChange={handleTimeChange}
                 textColor={colors.textPrimary}
               />
+            )}
+
+            {formErrors.startTime && (
+              <View className="mt-1 flex-row items-center">
+                <AlertCircle size={14} color="#ef4444" />
+                <Text className="ml-1 text-sm text-red-500">{formErrors.startTime}</Text>
+              </View>
             )}
           </View>
 

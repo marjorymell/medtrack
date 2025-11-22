@@ -79,7 +79,7 @@ export default function HomeScreen() {
 
   // Filtrar apenas medicamentos pending e confirmed (ocultar missed)
   const activeMedications = medications.filter(
-    (med) => med.status === 'pending' || med.status === 'confirmed'
+    (med: any) => med.status === 'pending' || med.status === 'confirmed'
   );
 
   // Refetch quando a tela receber foco

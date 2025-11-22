@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { parse, isAfter, startOfMinute, isBefore } from 'date-fns';
 
 /**
  * Schema de validação para criação de medicamento
@@ -25,7 +26,20 @@ export const createMedicationSchema = z.object({
   startTime: z
     .string()
     .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Horário deve estar no formato HH:MM')
-    .trim(),
+    .trim()
+    .refine(
+      (time) => {
+        // Validar se o horário não é no passado usando date-fns
+        const now = startOfMinute(new Date()); // Remove segundos para comparação justa
+        const startTime = parse(time, 'HH:mm', new Date());
+
+        // Se o horário já passou hoje, bloquear
+        return isAfter(startTime, now) || startTime.getTime() === now.getTime();
+      },
+      {
+        message: 'O horário de início já passou. Por favor, escolha um horário futuro.',
+      }
+    ),
 
   intervalHours: z
     .number()
@@ -43,10 +57,10 @@ export const createMedicationSchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data deve estar no formato AAAA-MM-DD')
     .refine(
       (date) => {
-        const selectedDate = new Date(date);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        return selectedDate >= today;
+        // Validar se a data é futura usando date-fns
+        const selectedDate = parse(date, 'yyyy-MM-dd', new Date());
+        const today = startOfMinute(new Date());
+        return isAfter(selectedDate, today) || selectedDate.getTime() === today.getTime();
       },
       { message: 'Data de validade deve ser futura' }
     )
@@ -105,10 +119,10 @@ export const updateMedicationSchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Data deve estar no formato AAAA-MM-DD')
     .refine(
       (date) => {
-        const selectedDate = new Date(date);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        return selectedDate >= today;
+        // Validar se a data é futura usando date-fns
+        const selectedDate = parse(date, 'yyyy-MM-dd', new Date());
+        const today = startOfMinute(new Date());
+        return isAfter(selectedDate, today) || selectedDate.getTime() === today.getTime();
       },
       { message: 'Data de validade deve ser futura' }
     )

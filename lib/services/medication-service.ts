@@ -1,6 +1,7 @@
 import { TodayMedication, MedicationHistory } from '@/types/medication';
 import { ApiResponse } from '@/types/api';
 import { ApiService } from './api-service';
+import { getTimezoneOffset } from '@/utils/timezone';
 
 /**
  * Serviço para comunicação com a API do backend
@@ -13,11 +14,21 @@ class MedicationService extends ApiService {
 
   /**
    * Busca os medicamentos programados para hoje
-   * GET /api/medications/today
+   * GET /api/medications/today?timezone=-180
+   *
+   * Envia o timezone offset do dispositivo para o backend calcular
+   * corretamente os horários no fuso do usuário
    */
   async getTodayMedications(): Promise<TodayMedication[]> {
     try {
-      const response = await this.get<TodayMedication[]>('/medications/today');
+      const timezoneOffset = getTimezoneOffset();
+      console.log('🌍 Enviando timezone para backend:', timezoneOffset);
+
+      const response = await this.get<TodayMedication[]>(
+        `/medications/today?timezone=${timezoneOffset}`
+      );
+
+      console.log('📊 Medicamentos recebidos do backend:', response.data?.length || 0);
       return response.data || [];
     } catch (error) {
       throw error;
@@ -181,7 +192,12 @@ class MedicationService extends ApiService {
    */
   async createMedication(medicationData: any): Promise<ApiResponse<any>> {
     try {
-      const response = await this.post<any>('/medications', medicationData);
+      const timezoneOffset = getTimezoneOffset();
+      console.log('🌍 Enviando timezone para createMedication:', timezoneOffset);
+      const response = await this.post<any>(
+        `/medications?timezone=${timezoneOffset}`,
+        medicationData
+      );
       return response;
     } catch (error) {
       throw error;

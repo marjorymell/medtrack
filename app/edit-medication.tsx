@@ -46,24 +46,6 @@ const FREQUENCY_OPTIONS = [
     enumValue: 'FOUR_TIMES_A_DAY',
     description: 'A cada 6 horas',
   },
-  {
-    label: 'A cada 6 horas',
-    value: '6 em 6 horas',
-    enumValue: 'FOUR_TIMES_A_DAY',
-    description: '4 vezes por dia',
-  },
-  {
-    label: 'A cada 8 horas',
-    value: '8 em 8 horas',
-    enumValue: 'THREE_TIMES_A_DAY',
-    description: '3 vezes por dia',
-  },
-  {
-    label: 'A cada 12 horas',
-    value: '12 em 12 horas',
-    enumValue: 'TWICE_A_DAY',
-    description: '2 vezes por dia',
-  },
   { label: 'Semanal', value: 'Semanal', enumValue: 'WEEKLY', description: 'Uma vez por semana' },
   { label: 'Mensal', value: 'Mensal', enumValue: 'MONTHLY', description: 'Uma vez por mês' },
 ] as const;
