@@ -19,17 +19,13 @@ class NotificationService extends ApiService {
    */
   async registerDeviceToken(deviceToken: DeviceToken): Promise<RegisterDeviceResponse> {
     try {
-
-
       const response = await this.post<RegisterDeviceResponse>('/notifications/register-device', {
         token: deviceToken.token,
         platform: deviceToken.platform,
       });
 
-
       return response.data!;
     } catch (error: any) {
-
       throw error;
     }
   }
@@ -41,17 +37,13 @@ class NotificationService extends ApiService {
     request: ScheduleNotificationRequest
   ): Promise<ScheduleNotificationResponse> {
     try {
-
-
       const response = await this.post<ScheduleNotificationResponse>(
         '/notifications/schedule',
         request
       );
 
-
       return response.data!;
     } catch (error: any) {
-
       throw error;
     }
   }
@@ -61,16 +53,12 @@ class NotificationService extends ApiService {
    */
   async cancelNotification(notificationId: string): Promise<{ success: boolean; message: string }> {
     try {
-
-
       const response = await this.delete<{ success: boolean; message: string }>(
         `/notifications/cancel/${notificationId}`
       );
 
-
       return response.data!;
     } catch (error: any) {
-
       throw error;
     }
   }
@@ -86,17 +74,13 @@ class NotificationService extends ApiService {
     quietHoursEnd?: string;
   }): Promise<{ success: boolean; message: string }> {
     try {
-
-
       const response = await this.put<{ success: boolean; message: string }>(
         '/notifications/settings',
         settings
       );
 
-
       return response.data!;
     } catch (error: any) {
-
       throw error;
     }
   }
@@ -112,9 +96,6 @@ class NotificationService extends ApiService {
     quietHoursEnd: string | null;
   }> {
     try {
-
-
-
       const response = await this.get<{
         settings: {
           enablePush: boolean;
@@ -124,10 +105,6 @@ class NotificationService extends ApiService {
           quietHoursEnd: string | null;
         };
       }>('/notifications/settings');
-
-
-
-
 
       return response.data!.settings;
     } catch (error: any) {
