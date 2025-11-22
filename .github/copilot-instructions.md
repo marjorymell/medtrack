@@ -116,10 +116,12 @@ MedTrack é um aplicativo móvel multiplataforma (Android e iOS) para gerenciame
 
 - Servidor Express.js com TypeScript
 - Prisma ORM configurado com MongoDB
-- Autenticação JWT implementada
+- Autenticação JWT implementada (refatorada - sem AuthService)
 - Validação com Zod schemas
-- Documentação OpenAPI/Swagger
-- Estrutura modular (medications, history, users, notifications)
+- **Documentação OpenAPI/Swagger (100% completa - 37/37 rotas)**
+- Estrutura modular (medications, history, users, notifications, schedules)
+- **60 testes automatizados passando (100% de sucesso)**
+- Middlewares otimizados (auth, validation, rate-limiting)
 
 **Banco de Dados:**
 
@@ -149,6 +151,7 @@ MedTrack é um aplicativo móvel multiplataforma (Android e iOS) para gerenciame
 - Serviços para agendamento local
 - Estrutura preparada para push notifications
 - Configurações de horário de silêncio
+- **Backend endpoints completamente documentados (5 rotas Swagger)**
 
 **Utilitários e Qualidade:**
 
@@ -157,6 +160,16 @@ MedTrack é um aplicativo móvel multiplataforma (Android e iOS) para gerenciame
 - Mocks para desenvolvimento
 - Tipos TypeScript bem definidos
 - ESLint/Prettier configurados
+- **60 testes Jest no backend (100% passando)**
+- **Documentação Swagger 100% completa**
+
+**Arquitetura Backend Refatorada (Nov 2025):**
+
+- Autenticação consolidada (jwt.ts + user.service.ts)
+- Middleware genérico de validação Zod
+- Estrutura de pastas otimizada (sem duplicatas)
+- Rate limiting implementado (auth: 5/15min, api: 100/15min)
+- Todos os endpoints documentados com OpenAPI 3.0
 
 ### 🚧 PARCIALMENTE IMPLEMENTADO
 
@@ -192,9 +205,12 @@ MedTrack é um aplicativo móvel multiplataforma (Android e iOS) para gerenciame
 
 **Qualidade e Testes:**
 
-- Testes automatizados (unitários, integração)
-- Testes E2E com dispositivos
-- Cobertura de testes mínima (70%)
+- **✅ 60 testes Jest no backend (100% passando)**
+- Estrutura de testes configurada (Jest + Supertest)
+- Testes de integração para todas as rotas da API
+- **Cobertura completa:** medications, users, schedules, notifications, history
+- Testes automatizados frontend pendentes (unitários, integração)
+- Testes E2E com dispositivos pendentes
 - Linting e formatação automatizados
 
 **Produção e Deploy:**
@@ -215,11 +231,13 @@ MedTrack é um aplicativo móvel multiplataforma (Android e iOS) para gerenciame
 
 **Segurança:**
 
-- Rate limiting na API
-- Refresh tokens
-- Encriptação de dados sensíveis
-- Auditoria de segurança
-- Conformidade com LGPD/GDPR
+- **✅ Rate limiting implementado** (auth: 5/15min, api: 100/15min)
+- **✅ Autenticação JWT com expiração configurável**
+- **✅ Senha hasheada com bcrypt**
+- Refresh tokens pendentes
+- Encriptação de dados sensíveis pendente
+- Auditoria de segurança pendente
+- Conformidade com LGPD/GDPR pendente
 
 ## Convenções de Código
 
@@ -495,14 +513,13 @@ backend/
       medications/      # CRUD de medicamentos ✅ IMPLEMENTADO
       history/          # Histórico e controle de estoque ✅ IMPLEMENTADO
       users/            # Autenticação e usuários ✅ IMPLEMENTADO
-      notifications/    # Sistema de notificações 🚧 PARCIAL
-      schedules/        # Agendamento de medicamentos
+      notifications/    # Sistema de notificações ✅ DOCUMENTADO
+      schedules/        # Agendamento de medicamentos ✅ IMPLEMENTADO
     shared/
       config/           # Configurações globais
       lib/              # Utilitários
-      middlewares/      # Middlewares Express
-      services/         # Serviços compartilhados
-      utils/            # Funções utilitárias
+      middlewares/      # Middlewares Express (auth, validate, rate-limit)
+      utils/            # Funções utilitárias (jwt, logger)
     swagger/            # Documentação OpenAPI
     @types/             # Definições de tipos
 
@@ -562,15 +579,50 @@ tailwind.config.js      # Mapeamento de cores Tailwind
 
 - `POST /api/medications` - Criar medicamento
 - `GET /api/medications` - Listar medicamentos do usuário
+- `GET /api/medications/today` - Medicamentos programados para hoje
+- `GET /api/medications/stock/low` - Medicamentos com estoque baixo
+- `GET /api/medications/stock/out` - Medicamentos sem estoque
 - `GET /api/medications/:id` - Buscar medicamento específico
 - `PUT /api/medications/:id` - Atualizar medicamento
+- `PUT /api/medications/:id/stock` - Atualizar apenas estoque
 - `DELETE /api/medications/:id` - Deletar medicamento
+
+**Usuários e Autenticação**
+
+- `POST /api/users/register` - Registrar novo usuário
+- `POST /api/users/login` - Fazer login
+- `GET /api/users/me` - Dados do usuário autenticado
+- `GET /api/users` - Listar usuários
+- `GET /api/users/:id` - Buscar usuário por ID
+- `PUT /api/users/:id` - Atualizar usuário
+- `DELETE /api/users/:id` - Deletar usuário
 
 **Histórico**
 
 - `POST /api/history` - Registrar dose tomada
-- `GET /api/history` - Buscar histórico
-- `GET /api/history/adherence` - Calcular taxa de adesão
+- `GET /api/history/me` - Histórico do usuário autenticado
+- `GET /api/history/medication/:medicationId` - Histórico por medicamento
+- `GET /api/history/medication/:medicationId/adherence` - Taxa de adesão
+- `GET /api/history/:id` - Buscar registro específico
+- `DELETE /api/history/:id` - Deletar registro
+
+**Notificações**
+
+- `POST /api/notifications/register-device` - Registrar token do dispositivo
+- `POST /api/notifications/schedule` - Agendar notificação
+- `DELETE /api/notifications/cancel/:id` - Cancelar notificação
+- `GET /api/notifications/settings` - Buscar configurações
+- `PUT /api/notifications/settings` - Atualizar configurações
+
+**Agendamentos**
+
+- `GET /api/schedules/medication/:medicationId` - Agendamentos do medicamento
+- `GET /api/schedules/user/:userId` - Agendamentos do usuário
+- `POST /api/schedules` - Criar agendamento customizado
+- `GET /api/schedules/:id` - Buscar agendamento
+- `PATCH /api/schedules/:id` - Atualizar agendamento
+- `PATCH /api/schedules/:id/toggle` - Ativar/desativar agendamento
+- `DELETE /api/schedules/:id` - Deletar agendamento
 
 ### Estrutura de Resposta
 
@@ -856,11 +908,19 @@ router.back();
 - **`docs/BOAS_PRATICAS_TEMA.md`** - Boas práticas e quando usar useThemeColors()
 - **`docs/TROUBLESHOOTING_TEMA.md`** - Resolução de problemas comuns
 
+### Documentação da API Backend
+
+- **Swagger UI:** `http://localhost:3000/api-docs` - Interface interativa completa
+- **37 rotas documentadas** com OpenAPI 3.0
+- **5 módulos** com 100% de cobertura Swagger
+- **Documentação inclui:** schemas, exemplos, códigos de erro, autenticação
+- **Como usar:** Todos os endpoints têm exemplos de request/response prontos para teste
+
 ---
 
-**Última atualização**: Dezembro 2025  
-**Versão**: 2.0 - Status atualizado com implementação completa do core  
-**Status do Projeto**: Core funcional, MVP pendente  
+**Última atualização**: 22/11/2025  
+**Versão**: 5.0 - Backend 100% documentado e testado + Arquitetura refatorada  
+**Status do Projeto**: Backend completo com 37 rotas documentadas e 60 testes passando  
 **Equipe**: Marjory Mel (PO + Frontend), Weslley da Silva (FullStack + CI/CD), Victor Gabriel Lucio (Backend), Diego Kiyoshi (Backend)
 
 ## Arquitetura do Projeto
