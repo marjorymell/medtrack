@@ -3,7 +3,7 @@ import { View, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useThemeColors } from '@/hooks/use-theme-colors';
 import { Pill, ChevronLeft, ChevronRight } from 'lucide-react-native';
-import { medicationService } from '@/lib/services/medication-service';
+import { historyService } from '@/lib/services/history-service';
 import { MedicationHistory } from '@/types/medication';
 import { useAuth } from '@/contexts/auth-context';
 import {
@@ -287,12 +287,12 @@ export default function HistoryScreen() {
         const startDate = startOfDay(date).toISOString();
         const endDate = endOfDay(date).toISOString();
 
-        const rawData = await medicationService.getMedicationHistory(startDate, endDate);
+        const response = await historyService.getMyHistory({ startDate, endDate });
+        const rawData = response.data || [];
 
         const processedData = processHistoryData(rawData);
         setDailyHistory(processedData);
       } catch (err) {
-
       } finally {
         setIsLoading(false);
       }

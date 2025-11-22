@@ -1,4 +1,5 @@
-import { authService, AuthService } from '@/services/auth-service';
+import { authService, AuthService } from '@/lib/services/auth-service';
+import { User, LoginRequest, RegisterRequest } from '@/types/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Mock do AsyncStorage
@@ -21,8 +22,17 @@ describe('AuthService', () => {
   describe('login', () => {
     it('deve fazer login com sucesso', async () => {
       const mockResponse = {
-        user: { id: '1', name: 'Test User', email: 'test@example.com', createdAt: '', updatedAt: '' },
-        token: 'mock-token',
+        success: true,
+        data: {
+          user: {
+            id: '1',
+            name: 'Test User',
+            email: 'test@example.com',
+            createdAt: '',
+            updatedAt: '',
+          },
+          token: 'mock-token',
+        },
       };
 
       mockFetch.mockResolvedValueOnce({
@@ -46,7 +56,7 @@ describe('AuthService', () => {
       );
       expect(AsyncStorage.multiSet).toHaveBeenCalledWith([
         ['@medtrack:auth_token', 'mock-token'],
-        ['@medtrack:user', JSON.stringify(mockResponse.user)],
+        ['@medtrack:user', JSON.stringify(mockResponse.data.user)],
       ]);
     });
 
@@ -78,14 +88,17 @@ describe('AuthService', () => {
   describe('register', () => {
     it('deve registrar usuário com sucesso', async () => {
       const mockResponse = {
-        user: {
-          id: '1',
-          name: 'New User',
-          email: 'new@example.com',
-          createdAt: '',
-          updatedAt: '',
+        success: true,
+        data: {
+          user: {
+            id: '1',
+            name: 'New User',
+            email: 'new@example.com',
+            createdAt: '',
+            updatedAt: '',
+          },
+          token: 'mock-token',
         },
-        token: 'mock-token',
       };
 
       mockFetch.mockResolvedValueOnce({

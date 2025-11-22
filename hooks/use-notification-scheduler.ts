@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import { ScheduledNotification, ScheduleNotificationRequest } from '../types/notification';
-import { notificationService } from '../services/notification-service';
+import { ScheduledNotification, ScheduleNotificationRequest } from '@/types/notification';
+import { notificationService } from '@/lib/services/notification-service';
 
 /**
  * Hook para agendar notificações de medicamentos
@@ -33,7 +33,6 @@ export function useNotificationScheduler() {
 
         // Verificar se o horário já passou
         if (reminderTime <= new Date()) {
-
           return null;
         }
 
@@ -70,7 +69,10 @@ export function useNotificationScheduler() {
         };
 
         // Adicionar à lista
-        setScheduledNotifications((prev) => [...prev, scheduledNotification]);}`
+        setScheduledNotifications((prev) => [...prev, scheduledNotification]);
+
+        console.log(
+          `[useNotificationScheduler] Notificação agendada: ${notificationId} para ${scheduledTime}`
         );
 
         // Tentar agendar também no backend (se disponível)
@@ -84,12 +86,10 @@ export function useNotificationScheduler() {
           };
 
           await notificationService.scheduleNotification(backendRequest);
-
         } catch (backendError) {}
 
         return notificationId;
       } catch (error: any) {
-
         setError(error.message || 'Erro ao agendar notificação');
         return null;
       } finally {
@@ -114,19 +114,13 @@ export function useNotificationScheduler() {
         prev.filter((notification) => notification.id !== notificationId)
       );
 
-
-
       // Tentar cancelar no backend também
       try {
         await notificationService.cancelNotification(notificationId);
-
-      } catch (backendError) {
-
-      }
+      } catch (backendError) {}
 
       return true;
     } catch (error: any) {
-
       setError(error.message || 'Erro ao cancelar notificação');
       return false;
     }
@@ -150,8 +144,10 @@ export function useNotificationScheduler() {
           cancelNotification(notification.id)
         );
 
-        await Promise.all(cancelPromises);return true;
-      } catch (error: any) {setError(error.message || 'Erro ao cancelar notificações');
+        await Promise.all(cancelPromises);
+        return true;
+      } catch (error: any) {
+        setError(error.message || 'Erro ao cancelar notificações');
         return false;
       }
     },
@@ -189,9 +185,9 @@ export function useNotificationScheduler() {
         );
 
         const results = await Promise.all(schedulePromises);
-        const successCount = results.filter((id) => id !== null).length;return successCount > 0;
+        const successCount = results.filter((id) => id !== null).length;
+        return successCount > 0;
       } catch (error: any) {
-
         setError(error.message || 'Erro ao reagendar notificações');
         return false;
       }
@@ -219,7 +215,6 @@ export function useNotificationScheduler() {
       setScheduledNotifications(notifications);
       return notifications;
     } catch (error: any) {
-
       return [];
     }
   }, []);

@@ -1,21 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Medication, CreateMedicationData, UpdateMedicationData } from '@/types/medication';
 import { medicationService } from '@/lib/services/medication-service';
 import { showToast } from '@/utils/toast';
 import { useAuth } from '@/contexts/auth-context';
-
-export interface Medication {
-  id: string;
-  name: string;
-  dosage: string;
-  frequency: string;
-  startTime: string;
-  intervalHours: number;
-  stock: number;
-  expiresAt?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export function useMedications() {
   const { isAuthenticated } = useAuth();
@@ -54,7 +41,7 @@ export function useMedications() {
   });
 
   const createMedicationMutation = useMutation({
-    mutationFn: async (medicationData: Omit<Medication, 'id' | 'createdAt' | 'updatedAt'>) => {
+    mutationFn: async (medicationData: CreateMedicationData) => {
       const response = await medicationService.createMedication(medicationData);
       return response.data;
     },
@@ -73,7 +60,7 @@ export function useMedications() {
       medicationData,
     }: {
       medicationId: string;
-      medicationData: Partial<Medication>;
+      medicationData: UpdateMedicationData;
     }) => {
       const response = await medicationService.updateMedication(medicationId, medicationData);
       return response.data;
@@ -121,13 +108,11 @@ export function useMedications() {
   });
 
   // Funções wrapper para manter compatibilidade com código existente
-  const createMedication = async (
-    medicationData: Omit<Medication, 'id' | 'createdAt' | 'updatedAt'>
-  ) => {
+  const createMedication = async (medicationData: CreateMedicationData) => {
     return createMedicationMutation.mutateAsync(medicationData);
   };
 
-  const updateMedication = async (medicationId: string, medicationData: Partial<Medication>) => {
+  const updateMedication = async (medicationId: string, medicationData: UpdateMedicationData) => {
     return updateMedicationMutation.mutateAsync({ medicationId, medicationData });
   };
 

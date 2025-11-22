@@ -1,18 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { CreateMedicationData } from '@/types/medication';
 import { medicationService } from '@/lib/services/medication-service';
 import { showToast } from '@/utils/toast';
 import { useAuth } from '@/contexts/auth-context';
-
-export interface CreateMedicationData {
-  name: string;
-  dosage: string;
-  frequency: string;
-  startTime: string;
-  intervalHours: number;
-  stock: number;
-  expiresAt?: string;
-  notes?: string;
-}
 
 export function useCreateMedication() {
   const { token } = useAuth();
@@ -43,7 +33,6 @@ export function useCreateMedication() {
       showToast('Medicamento criado com sucesso!', 'success');
     },
     onError: (err: any) => {
-
       showToast('Erro ao criar medicamento', 'error');
     },
   });

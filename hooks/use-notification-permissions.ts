@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import { NotificationPermissionStatus } from '../types/notification';
+import { NotificationPermissionStatus } from '@/types/notification';
 
 /**
  * Hook para gerenciar permissões de notificação
@@ -17,11 +17,8 @@ export function useNotificationPermissions() {
   // Verificar status atual das permissões
   const checkPermissions = async () => {
     try {
-
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       const granted = existingStatus === 'granted';
-
-
 
       setPermissionStatus({
         granted,
@@ -29,7 +26,6 @@ export function useNotificationPermissions() {
         status: existingStatus,
       });
     } catch (error) {
-
     } finally {
       setIsLoading(false);
     }
@@ -62,7 +58,6 @@ export function useNotificationPermissions() {
 
       return { granted, canAskAgain, status };
     } catch (error) {
-
       return { granted: false, canAskAgain: false, status: 'denied' as const };
     } finally {
       setIsLoading(false);
@@ -71,7 +66,6 @@ export function useNotificationPermissions() {
 
   // Verificar permissões automaticamente quando o hook é inicializado
   useEffect(() => {
-
     checkPermissions();
   }, []);
 

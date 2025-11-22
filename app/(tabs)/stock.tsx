@@ -19,23 +19,15 @@ import {
   RefreshCw,
   X,
   Check,
+  AlertCircle,
 } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import { useThemeColors } from '@/hooks/use-theme-colors';
 import { useMedications } from '@/hooks/use-medications';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
-
-interface Medication {
-  id: string;
-  name: string;
-  dosage: string;
-  frequency: string;
-  startTime: string;
-  stock: number;
-  expiresAt?: string;
-  notes?: string;
-}
+import { Medication } from '@/types/medication';
+import { updateStockSchema, formatZodErrors } from '@/lib/validation/medication-schemas';
 
 export default function StockScreen() {
   const { colorScheme } = useColorScheme();
@@ -61,6 +53,7 @@ export default function StockScreen() {
   const [stockModalVisible, setStockModalVisible] = useState(false);
   const [selectedMedication, setSelectedMedication] = useState<Medication | null>(null);
   const [newStockValue, setNewStockValue] = useState('');
+  const [stockError, setStockError] = useState<string>('');
 
   const handleRefresh = () => {
     refetch();
@@ -114,6 +107,7 @@ export default function StockScreen() {
   const handleUpdateStock = (medication: Medication) => {
     setSelectedMedication(medication);
     setNewStockValue(medication.stock.toString());
+    setStockError('');
     setStockModalVisible(true);
   };
 
@@ -121,21 +115,31 @@ export default function StockScreen() {
     if (!selectedMedication) return;
 
     const stock = parseInt(newStockValue);
-    if (isNaN(stock) || stock < 0) {
-      Alert.alert('Erro', 'Por favor, insira um número válido (0 ou maior)');
-      return;
-    }
 
-    await updateStock(selectedMedication.id, stock);
-    setStockModalVisible(false);
-    setSelectedMedication(null);
-    setNewStockValue('');
+    // Validar com Zod
+    try {
+      updateStockSchema.parse({ stock });
+      setStockError('');
+
+      await updateStock(selectedMedication.id, stock);
+      setStockModalVisible(false);
+      setSelectedMedication(null);
+      setNewStockValue('');
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        const errors = formatZodErrors(error);
+        setStockError(errors.stock || 'Valor inválido');
+      } else {
+        setStockError('Por favor, insira um número válido');
+      }
+    }
   };
 
   const handleCancelUpdateStock = () => {
     setStockModalVisible(false);
     setSelectedMedication(null);
     setNewStockValue('');
+    setStockError('');
   };
 
   const formatDate = (dateString?: string) => {
@@ -298,15 +302,29 @@ export default function StockScreen() {
                 </Text>
 
                 <TextInput
-                  className="mb-6 rounded-lg border border-border bg-background px-4 py-3 text-foreground dark:border-border-dark dark:bg-background-dark dark:text-foreground-dark"
+                  className={`rounded-lg border px-4 py-3 text-foreground dark:text-foreground-dark ${
+                    stockError
+                      ? 'border-red-500 bg-red-50 dark:border-red-500 dark:bg-red-950/20'
+                      : 'border-border bg-background dark:border-border-dark dark:bg-background-dark'
+                  }`}
                   placeholder="Novo estoque"
                   value={newStockValue}
-                  onChangeText={setNewStockValue}
+                  onChangeText={(text) => {
+                    setNewStockValue(text);
+                    if (stockError) setStockError('');
+                  }}
                   keyboardType="numeric"
                   autoFocus={true}
                 />
 
-                <View className="flex-row gap-3">
+                {stockError && (
+                  <View className="mb-4 mt-2 flex-row items-center gap-2">
+                    <AlertCircle size={16} color="#ef4444" />
+                    <Text className="flex-1 text-sm text-red-500">{stockError}</Text>
+                  </View>
+                )}
+
+                <View className="flex-row gap-3" style={{ marginTop: stockError ? 0 : 24 }}>
                   <TouchableOpacity
                     onPress={handleCancelUpdateStock}
                     className="flex-1 rounded-lg bg-secondary px-4 py-3 dark:bg-secondary-dark">

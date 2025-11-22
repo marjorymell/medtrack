@@ -1,19 +1,9 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { authService, User, LoginRequest, RegisterRequest } from '../services/auth-service';
+import { User, LoginRequest, RegisterRequest, AuthContextValue } from '@/types/auth';
+import { authService } from '@/lib/services/auth-service';
 import { showToast } from '../utils/toast';
 
-interface AuthContextType {
-  user: User | null;
-  token: string | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  login: (credentials: LoginRequest) => Promise<void>;
-  register: (userData: RegisterRequest) => Promise<void>;
-  logout: () => Promise<void>;
-  refreshAuth: () => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -38,18 +28,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         authService.getUser(),
       ]);
 
-
-
-
       if (storedToken && storedUser) {
         setToken(storedToken);
         setUser(storedUser);
-
       } else {
-
       }
     } catch (error) {
-
     } finally {
       setIsLoading(false);
     }
@@ -64,14 +48,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       const response = await authService.login(credentials);
 
-      setUser(response.user);
-      setToken(response.token);
+      setUser(response.data.user);
+      setToken(response.data.token);
 
-      showToast('Login realizado com sucesso!', 'success');
-
+      // Não mostra toast aqui - será mostrado na tela de auth
     } catch (error: any) {
-
-      showToast(error.message || 'Erro no login', 'error');
+      // Re-lança o erro para ser tratado na tela
       throw error;
     } finally {
       setIsLoading(false);
@@ -87,14 +69,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       const response = await authService.register(userData);
 
-      setUser(response.user);
-      setToken(response.token);
+      setUser(response.data.user);
+      setToken(response.data.token);
 
-      showToast('Conta criada com sucesso!', 'success');
-
+      // Não mostra toast aqui - será mostrado na tela de auth
     } catch (error: any) {
-
-      showToast(error.message || 'Erro ao criar conta', 'error');
+      // Re-lança o erro para ser tratado na tela
       throw error;
     } finally {
       setIsLoading(false);
@@ -114,9 +94,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setToken(null);
 
       showToast('Logout realizado com sucesso', 'success');
-
     } catch (error: any) {
-
       showToast('Erro ao fazer logout', 'error');
     } finally {
       setIsLoading(false);
@@ -134,7 +112,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     loadStoredAuth();
   }, []);
 
-  const value: AuthContextType = {
+  const value: AuthContextValue = {
     user,
     token,
     isLoading,
@@ -142,7 +120,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     login,
     register,
     logout,
-    refreshAuth,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -151,7 +128,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 /**
  * Hook para usar o contexto de autenticação
  */
-export function useAuth(): AuthContextType {
+export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth deve ser usado dentro de um AuthProvider');

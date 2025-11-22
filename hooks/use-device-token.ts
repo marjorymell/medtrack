@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import { DeviceToken } from '../types/notification';
-import { notificationService } from '../services/notification-service';
-import { useAuth } from '../contexts/auth-context';
+import { DeviceToken } from '@/types/notification';
+import { notificationService } from '@/lib/services/notification-service';
+import { useAuth } from '@/contexts/auth-context';
 
 /**
  * Hook para gerenciar tokens de dispositivo para notificações push

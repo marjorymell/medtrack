@@ -13,6 +13,8 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { X, Clock, Calendar, Package, FileText, AlertCircle } from 'lucide-react-native';
 import { useThemeColors } from '@/hooks/use-theme-colors';
 import { useMedications } from '@/hooks/use-medications';
+import { Medication, UpdateMedicationData } from '@/types/medication';
+import { updateMedicationSchema, formatZodErrors } from '@/lib/validation/medication-schemas';
 
 interface EditMedicationFormData {
   name: string;
@@ -79,7 +81,7 @@ export default function EditMedicationScreen() {
   const { medications, updateMedication, loading, error } = useMedications();
 
   // Encontrar o medicamento a ser editado
-  const medication = medications.find((med) => med.id === id);
+  const medication = medications.find((med: Medication) => med.id === id);
 
   // Form state
   const [name, setName] = useState<string>('');
@@ -125,49 +127,43 @@ export default function EditMedicationScreen() {
   }, [medication, medications]);
 
   const validateForm = (): boolean => {
-    const errors: Partial<Record<keyof EditMedicationFormData, string>> = {};
+    try {
+      // Encontrar o valor do enum correspondente à frequência selecionada
+      const selectedOption = FREQUENCY_OPTIONS.find((option) => option.value === selectedFrequency);
+      const frequencyEnumValue = selectedOption?.enumValue || 'ONE_TIME';
 
-    if (!name.trim()) {
-      errors.name = 'Nome do medicamento é obrigatório';
-    } else if (name.trim().length < 2) {
-      errors.name = 'Nome deve ter pelo menos 2 caracteres';
-    }
+      const formData: UpdateMedicationData = {
+        name: name.trim(),
+        dosage: dosage.trim(),
+        frequency: frequencyEnumValue,
+        startTime: startTime || '08:00',
+        intervalHours: calculateIntervalHours(selectedFrequency),
+        stock: parseInt(stock) || 0,
+        expiresAt: expiryDate ? convertDateFormat(expiryDate) : undefined,
+        notes: notes.trim() || undefined,
+      };
 
-    if (!dosage.trim()) {
-      errors.dosage = 'Dosagem é obrigatória';
-    }
-
-    // Validação de frequência
-    if (!selectedFrequency) {
-      errors.frequency = 'Frequência é obrigatória';
-    } else {
-      const validFrequencies = FREQUENCY_OPTIONS.map((option) => option.value);
-      if (!validFrequencies.includes(selectedFrequency as any)) {
-        errors.frequency = 'Frequência selecionada é inválida';
+      // Validar com Zod
+      updateMedicationSchema.parse(formData);
+      setFormErrors({});
+      return true;
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        const errors = formatZodErrors(error);
+        setFormErrors(errors);
+        return false;
       }
-    }
-
-    if (!stock.trim()) {
-      errors.stock = 'Quantidade em estoque é obrigatória';
-    } else {
-      const stockNum = parseInt(stock);
-      if (isNaN(stockNum) || stockNum < 0) {
-        errors.stock = 'Quantidade deve ser um número positivo';
+      // Erros de parsing de número
+      if (isNaN(parseInt(stock))) {
+        setFormErrors({ stock: 'Quantidade deve ser um número válido' });
+        return false;
       }
+      if (startTime && !/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(startTime)) {
+        setFormErrors({ startTime: 'Horário deve estar no formato HH:MM' });
+        return false;
+      }
+      return false;
     }
-
-    if (expiryDate && !isValidDate(expiryDate)) {
-      errors.expiryDate = 'Data de validade deve estar no formato DD/MM/AAAA';
-    }
-
-    if (!startTime.trim()) {
-      errors.startTime = 'Horário de início é obrigatório';
-    } else if (!isValidTime(startTime)) {
-      errors.startTime = 'Horário deve estar no formato HH:MM';
-    }
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
   };
 
   const isValidDate = (dateStr: string): boolean => {
@@ -258,7 +254,7 @@ export default function EditMedicationScreen() {
       const selectedOption = FREQUENCY_OPTIONS.find((option) => option.value === selectedFrequency);
       const frequencyEnumValue = selectedOption?.enumValue || 'ONE_TIME';
 
-      const formData = {
+      const formData: UpdateMedicationData = {
         name: name.trim(),
         dosage: dosage.trim(),
         frequency: frequencyEnumValue,
@@ -272,7 +268,6 @@ export default function EditMedicationScreen() {
       await updateMedication(medication.id, formData);
       router.back();
     } catch (error) {
-
       // Toast já é mostrado pelo hook
     }
   };

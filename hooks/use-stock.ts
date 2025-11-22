@@ -1,15 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { StockMedication } from '@/types/stock';
 import { medicationService } from '@/lib/services/medication-service';
 import { showToast } from '@/utils/toast';
 import { useAuth } from '@/contexts/auth-context';
-
-export interface StockMedication {
-  id: string;
-  name: string;
-  dosage: string;
-  stock: number;
-  expiresAt?: string;
-}
 
 export function useStock() {
   const { isAuthenticated } = useAuth();
@@ -56,7 +49,6 @@ export function useStock() {
       showToast('Estoque atualizado com sucesso', 'success');
     },
     onError: (err: any) => {
-
       showToast('Erro ao atualizar estoque', 'error');
     },
   });

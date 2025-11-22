@@ -1,15 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { notificationService } from '@/services/notification-service';
+import { NotificationSettings } from '@/types/notification';
+import { notificationService } from '@/lib/services/notification-service';
 import { showToast } from '@/utils/toast';
 import { useAuth } from '@/contexts/auth-context';
-
-export interface NotificationSettings {
-  enablePush: boolean;
-  enableEmail: boolean;
-  reminderBefore: number;
-  quietHoursStart: string | null;
-  quietHoursEnd: string | null;
-}
+import { ApiResponse } from '@/types/api';
 
 export function useNotificationSettings() {
   const { isAuthenticated } = useAuth();
@@ -43,13 +37,12 @@ export function useNotificationSettings() {
       };
       return await notificationService.updateNotificationSettings(apiSettings);
     },
-    onSuccess: (response, variables) => {
+    onSuccess: (_response: ApiResponse<NotificationSettings>, variables: NotificationSettings) => {
       // Atualizar cache com novas configurações
       queryClient.setQueryData(['notification-settings'], variables);
       showToast('Configurações atualizadas com sucesso', 'success');
     },
     onError: (err: any) => {
-
       showToast('Erro ao atualizar configurações', 'error');
     },
   });
@@ -67,7 +60,6 @@ export function useNotificationSettings() {
       showToast('Dispositivo registrado para notificações', 'success');
     },
     onError: (err: any) => {
-
       showToast('Erro ao registrar dispositivo', 'error');
     },
   });

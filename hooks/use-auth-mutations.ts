@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { authService, LoginRequest, RegisterRequest } from '@/services/auth-service';
+import { authService } from '@/lib/services/auth-service';
+import { LoginRequest, RegisterRequest, AuthResponse } from '@/types/auth';
 import { showToast } from '@/utils/toast';
 
 /**
@@ -13,7 +14,7 @@ export function useAuthMutations() {
     mutationFn: async (credentials: LoginRequest) => {
       return await authService.login(credentials);
     },
-    onSuccess: (response) => {
+    onSuccess: (response: AuthResponse) => {
       // Invalidar queries que dependem do estado de autenticação
       queryClient.invalidateQueries({ queryKey: ['current-user'] });
       queryClient.invalidateQueries({ queryKey: ['medications'] });
@@ -21,7 +22,6 @@ export function useAuthMutations() {
       showToast('Login realizado com sucesso!', 'success');
     },
     onError: (err: any) => {
-
       showToast(err.message || 'Erro no login', 'error');
     },
   });
@@ -31,7 +31,7 @@ export function useAuthMutations() {
     mutationFn: async (userData: RegisterRequest) => {
       return await authService.register(userData);
     },
-    onSuccess: (response) => {
+    onSuccess: (response: AuthResponse) => {
       // Invalidar queries que dependem do estado de autenticação
       queryClient.invalidateQueries({ queryKey: ['current-user'] });
       queryClient.invalidateQueries({ queryKey: ['medications'] });
@@ -39,7 +39,6 @@ export function useAuthMutations() {
       showToast('Conta criada com sucesso!', 'success');
     },
     onError: (err: any) => {
-
       showToast(err.message || 'Erro ao criar conta', 'error');
     },
   });
@@ -55,7 +54,6 @@ export function useAuthMutations() {
       showToast('Logout realizado com sucesso', 'success');
     },
     onError: (err: any) => {
-
       showToast('Erro ao fazer logout', 'error');
     },
   });

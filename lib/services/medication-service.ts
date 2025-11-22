@@ -1,4 +1,5 @@
-import { TodayMedication, ApiResponse, MedicationHistory } from '@/types/medication';
+import { TodayMedication, MedicationHistory } from '@/types/medication';
+import { ApiResponse } from '@/types/api';
 import { ApiService } from './api-service';
 
 /**
@@ -24,75 +25,87 @@ class MedicationService extends ApiService {
   }
 
   /**
-   * Confirma que uma dose foi tomada
-   * POST /api/history
+   * @deprecated Use historyService.confirmMedication() ao invés
+   * Mantido para retrocompatibilidade - será removido na v7.0
    */
   async confirmMedication(scheduleId: string): Promise<ApiResponse<void>> {
-    try {
-      const response = await this.post<void>('/history', {
-        scheduleId,
-        action: 'TAKEN',
-        quantity: 1, // Quantidade padrão para decremento de estoque
-        notes: `Confirmado em ${new Date().toLocaleString('pt-BR')}`,
-      });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    console.warn(
+      '⚠️ medicationService.confirmMedication() está deprecated. Use historyService.confirmMedication()'
+    );
+    const { historyService } = await import('./history-service');
+    return historyService.confirmMedication(scheduleId) as any;
   }
 
   /**
-   * Adia uma dose para mais tarde
-   * POST /api/history
+   * @deprecated Use historyService.postponeMedication() ao invés
+   * Mantido para retrocompatibilidade - será removido na v7.0
    */
   async postponeMedication(
     scheduleId: string,
     postponeMinutes: number = 30
   ): Promise<ApiResponse<void>> {
-    try {
-      const postponedTo = new Date();
-      postponedTo.setMinutes(postponedTo.getMinutes() + postponeMinutes);
-
-      const response = await this.post<void>('/history', {
-        scheduleId,
-        action: 'POSTPONED',
-        postponedTo: postponedTo.toISOString(),
-      });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    console.warn(
+      '⚠️ medicationService.postponeMedication() está deprecated. Use historyService.postponeMedication()'
+    );
+    const { historyService } = await import('./history-service');
+    return historyService.postponeMedication(scheduleId, postponeMinutes) as any;
   }
 
   /**
-   * Busca o histórico de medicamentos
-   * GET /api/history
+   * @deprecated Use historyService.getMyHistory() ao invés
+   * Mantido para retrocompatibilidade - será removido na v7.0
    */
   async getMedicationHistory(startDate?: string, endDate?: string): Promise<MedicationHistory[]> {
-    try {
-      const params = new URLSearchParams();
-      if (startDate) params.append('startDate', startDate);
-      if (endDate) params.append('endDate', endDate);
-
-      const endpoint = `/history/me?${params.toString()}`;
-      const response = await this.get<MedicationHistory[]>(endpoint);
-      return response.data || [];
-    } catch (error) {
-      throw error;
-    }
+    console.warn(
+      '⚠️ medicationService.getMedicationHistory() está deprecated. Use historyService.getMyHistory()'
+    );
+    const { historyService } = await import('./history-service');
+    const response = await historyService.getMyHistory({ startDate, endDate });
+    return response.data || [];
   }
 
   /**
-   * Calcula a taxa de adesão ao tratamento
-   * GET /api/history/adherence
+   * @deprecated Use historyService.getHistoryByMedication() ao invés
+   * Mantido para retrocompatibilidade - será removido na v7.0
    */
-  async getAdherenceRate(days: number = 7): Promise<number> {
-    try {
-      const response = await this.get<number>(`/history/adherence?days=${days}`);
-      return response.data || 0;
-    } catch (error) {
-      throw error;
-    }
+  async getHistoryByMedication(
+    medicationId: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<ApiResponse<MedicationHistory[]>> {
+    console.warn(
+      '⚠️ medicationService.getHistoryByMedication() está deprecated. Use historyService.getHistoryByMedication()'
+    );
+    const { historyService } = await import('./history-service');
+    return historyService.getHistoryByMedication(medicationId, { startDate, endDate });
+  }
+
+  /**
+   * @deprecated Use historyService.getAdherenceStats() ao invés
+   * Mantido para retrocompatibilidade - será removido na v7.0
+   */
+  async getMedicationAdherence(
+    medicationId: string,
+    days: number = 7
+  ): Promise<ApiResponse<number>> {
+    console.warn(
+      '⚠️ medicationService.getMedicationAdherence() está deprecated. Use historyService.getAdherenceStats()'
+    );
+    const { historyService } = await import('./history-service');
+    const response = await historyService.getAdherenceStats(medicationId);
+    return { success: true, data: parseFloat(response.data?.adherenceRate || '0') } as any;
+  }
+
+  /**
+   * @deprecated Use historyService.deleteHistory() ao invés
+   * Mantido para retrocompatibilidade - será removido na v7.0
+   */
+  async deleteHistoryEntry(historyId: string): Promise<ApiResponse<void>> {
+    console.warn(
+      '⚠️ medicationService.deleteHistoryEntry() está deprecated. Use historyService.deleteHistory()'
+    );
+    const { historyService } = await import('./history-service');
+    return historyService.deleteHistory(historyId) as any;
   }
 
   /**
@@ -102,6 +115,19 @@ class MedicationService extends ApiService {
   async getMedications(): Promise<ApiResponse<any[]>> {
     try {
       const response = await this.get<any[]>('/medications');
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Busca um medicamento específico por ID
+   * GET /api/medications/:id
+   */
+  async getMedicationById(medicationId: string): Promise<ApiResponse<any>> {
+    try {
+      const response = await this.get<any>(`/medications/${medicationId}`);
       return response;
     } catch (error) {
       throw error;

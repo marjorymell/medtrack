@@ -6,7 +6,7 @@ import { useThemeColors } from '@/hooks/use-theme-colors';
 import { useAuth } from '@/contexts/auth-context';
 import { useNotificationPermissions } from '@/hooks/use-notification-permissions';
 import { useDeviceToken } from '@/hooks/use-device-token';
-import { notificationService } from '@/services/notification-service';
+import { notificationService } from '@/lib/services/notification-service';
 import type { NotificationSettings } from '@/types/notification';
 
 export default function NotificationSettingsScreen() {

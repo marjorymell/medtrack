@@ -1,23 +1,10 @@
-import { authService } from '@/services/auth-service';
+import { authService } from './auth-service';
+import { ApiResponse, RequestOptions as BaseRequestOptions } from '@/types/api';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 /**
- * Tipos de resposta da API
- */
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  error?: {
-    code: string;
-    message: string;
-    details?: any[];
-  };
-  message?: string;
-}
-
-/**
- * Opções para requisições HTTP
+ * Opções para requisições HTTP (estende RequestInit do fetch)
  */
 export interface RequestOptions extends RequestInit {
   requiresAuth?: boolean;
@@ -64,14 +51,10 @@ export class ApiService {
 
         if (token) {
           requestHeaders.Authorization = `Bearer ${token}`;
-
         } else if (requiresAuth) {
-
           throw new Error('Token de autenticação não encontrado');
         }
       }
-
-
 
       // Controller para timeout
       const controller = new AbortController();
@@ -89,11 +72,8 @@ export class ApiService {
       // Trata resposta
       const responseData = await this.parseResponse<T>(response);
 
-
       return responseData;
     } catch (error: any) {
-
-
       // Trata diferentes tipos de erro
       if (error.name === 'AbortError') {
         throw new Error('Timeout: A requisição demorou muito para responder');

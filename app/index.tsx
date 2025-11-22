@@ -13,22 +13,19 @@ export default function IndexScreen() {
   // Redirecionamento automático baseado no estado de autenticação
   useEffect(() => {
     if (!isLoading) {
-
       if (isAuthenticated) {
-
         router.replace('/(tabs)');
       } else {
-
       }
     }
   }, [isAuthenticated, isLoading, router]);
 
   const handleLogin = () => {
-    router.push('/auth-screen?mode=login');
+    router.push('/login');
   };
 
   const handleCreateAccount = () => {
-    router.push('/auth-screen?mode=signup');
+    router.push('/signup');
   };
 
   // Mostra loading enquanto verifica autenticação

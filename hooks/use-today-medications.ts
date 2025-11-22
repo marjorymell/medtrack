@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { TodayMedication, ApiResponse } from '@/types/medication';
 import { medicationServiceMock } from '@/mocks/medication-service-mock';
 import { medicationService } from '@/lib/services/medication-service';
 import { useAuth } from '@/contexts/auth-context';

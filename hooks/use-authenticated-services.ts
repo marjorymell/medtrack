@@ -1,7 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/auth-context';
-import { notificationService } from '@/services/notification-service';
+import { notificationService } from '@/lib/services/notification-service';
 import { medicationService } from '@/lib/services/medication-service';
+import { historyService } from '@/lib/services/history-service';
+import { HistoryAction } from '@/types/history';
 import { showToast } from '@/utils/toast';
 
 /**
@@ -14,7 +16,7 @@ export function useAuthenticatedServices() {
   // Mutation para confirmar medicamento
   const confirmMedicationMutation = useMutation({
     mutationFn: async (scheduleId: string) => {
-      const result = await medicationService.confirmMedication(scheduleId);
+      const result = await historyService.confirmMedication(scheduleId);
       if (!result.success) {
         throw new Error(result.error?.message || 'Erro ao confirmar medicamento');
       }
@@ -24,10 +26,10 @@ export function useAuthenticatedServices() {
       // Invalidar queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['today-medications'] });
       queryClient.invalidateQueries({ queryKey: ['medications'] });
+      queryClient.invalidateQueries({ queryKey: ['history'] });
       showToast('Medicamento confirmado com sucesso!', 'success');
     },
     onError: (err: any) => {
-
       showToast('Não foi possível confirmar o medicamento', 'error');
     },
   });
@@ -35,7 +37,7 @@ export function useAuthenticatedServices() {
   // Mutation para adiar medicamento
   const postponeMedicationMutation = useMutation({
     mutationFn: async ({ scheduleId, minutes }: { scheduleId: string; minutes?: number }) => {
-      const result = await medicationService.postponeMedication(scheduleId, minutes || 30);
+      const result = await historyService.postponeMedication(scheduleId, minutes || 30);
       if (!result.success) {
         throw new Error(result.error?.message || 'Erro ao adiar medicamento');
       }
@@ -45,9 +47,9 @@ export function useAuthenticatedServices() {
       // Invalidar queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['today-medications'] });
       queryClient.invalidateQueries({ queryKey: ['medications'] });
+      queryClient.invalidateQueries({ queryKey: ['history'] });
     },
     onError: (err: any) => {
-
       showToast('Não foi possível adiar o medicamento', 'error');
     },
   });
@@ -61,7 +63,6 @@ export function useAuthenticatedServices() {
       showToast('Dispositivo registrado para notificações', 'success');
     },
     onError: (err: any) => {
-
       showToast('Erro ao registrar dispositivo', 'error');
     },
   });
@@ -75,7 +76,6 @@ export function useAuthenticatedServices() {
       showToast('Notificação agendada com sucesso', 'success');
     },
     onError: (err: any) => {
-
       showToast('Erro ao agendar notificação', 'error');
     },
   });
@@ -89,7 +89,6 @@ export function useAuthenticatedServices() {
       showToast('Notificação cancelada com sucesso', 'success');
     },
     onError: (err: any) => {
-
       showToast('Erro ao cancelar notificação', 'error');
     },
   });
@@ -105,7 +104,6 @@ export function useAuthenticatedServices() {
       showToast('Configurações atualizadas com sucesso', 'success');
     },
     onError: (err: any) => {
-
       showToast('Erro ao atualizar configurações', 'error');
     },
   });
@@ -116,9 +114,13 @@ export function useAuthenticatedServices() {
       confirmMedication: (scheduleId: string) => confirmMedicationMutation.mutateAsync(scheduleId),
       postponeMedication: (scheduleId: string, minutes?: number) =>
         postponeMedicationMutation.mutateAsync({ scheduleId, minutes }),
-      getMedicationHistory: (startDate?: string, endDate?: string) =>
-        medicationService.getMedicationHistory(startDate, endDate),
-      getAdherenceRate: (days?: number) => medicationService.getAdherenceRate(days),
+    },
+    historyService: {
+      getMyHistory: (startDate?: string, endDate?: string) =>
+        historyService.getMyHistory({ startDate, endDate }),
+      getRecentHistory: (days?: number) => historyService.getRecentHistory(days),
+      getAdherenceStats: (medicationId: string, startDate?: string, endDate?: string) =>
+        historyService.getAdherenceStats(medicationId, startDate, endDate),
     },
     notificationService: {
       registerDeviceToken: (deviceToken: any) =>

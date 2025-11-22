@@ -23,6 +23,8 @@ import {
 } from 'lucide-react-native';
 import { useThemeColors } from '@/hooks/use-theme-colors';
 import { useMedications } from '@/hooks/use-medications';
+import { CreateMedicationData } from '@/types/medication';
+import { createMedicationSchema, formatZodErrors } from '@/lib/validation/medication-schemas';
 
 interface AddMedicationFormData {
   name: string;
@@ -31,20 +33,6 @@ interface AddMedicationFormData {
   expiryDate: string;
   stock: string;
   notes: string;
-}
-
-interface FrequencyOption {
-  label: string;
-  value: string;
-  enumValue: string;
-  description: string;
-}
-
-interface PickerItem {
-  id?: string;
-  label: string;
-  value?: string;
-  isSpacer?: boolean;
 }
 
 const FREQUENCY_OPTIONS = [
@@ -101,75 +89,39 @@ export default function AddMedicationScreen() {
   >({});
 
   const validateForm = (): boolean => {
-    const errors: Partial<Record<keyof AddMedicationFormData, string>> = {};
+    try {
+      // Encontrar o valor do backend correspondente à frequência selecionada
+      const selectedOption = FREQUENCY_OPTIONS.find((option) => option.value === selectedFrequency);
+      const frequencyEnumValue = selectedOption?.enumValue || 'ONE_TIME';
 
-    if (!name.trim()) {
-      errors.name = 'Nome do medicamento é obrigatório';
-    } else if (name.trim().length < 2) {
-      errors.name = 'Nome deve ter pelo menos 2 caracteres';
-    }
+      const formData: CreateMedicationData = {
+        name: name.trim(),
+        dosage: dosage.trim(),
+        frequency: frequencyEnumValue,
+        startTime,
+        intervalHours: calculateIntervalHours(selectedFrequency),
+        stock: parseInt(stock) || 0,
+        expiresAt: expiryDate ? convertDateFormat(expiryDate) : undefined,
+        notes: notes.trim() || undefined,
+      };
 
-    if (!dosage.trim()) {
-      errors.dosage = 'Dosagem é obrigatória';
-    }
-
-    // Validação de frequência
-    if (!selectedFrequency) {
-      errors.frequency = 'Frequência é obrigatória';
-    } else {
-      const validFrequencies = FREQUENCY_OPTIONS.map((option) => option.value);
-      if (!validFrequencies.includes(selectedFrequency as any)) {
-        errors.frequency = 'Frequência selecionada é inválida';
+      // Validar com Zod
+      createMedicationSchema.parse(formData);
+      setFormErrors({});
+      return true;
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        const errors = formatZodErrors(error);
+        setFormErrors(errors);
+        return false;
       }
-    }
-
-    if (!stock.trim()) {
-      errors.stock = 'Quantidade em estoque é obrigatória';
-    } else {
-      const stockNum = parseInt(stock);
-      if (isNaN(stockNum) || stockNum < 0) {
-        errors.stock = 'Quantidade deve ser um número positivo';
+      // Erros de parsing de número
+      if (isNaN(parseInt(stock))) {
+        setFormErrors({ stock: 'Quantidade deve ser um número válido' });
+        return false;
       }
+      return false;
     }
-
-    if (expiryDate) {
-      // Validação básica de formato (já que o DatePicker garante validade)
-      const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-      if (!dateRegex.test(expiryDate)) {
-        errors.expiryDate = 'Data de validade deve estar no formato DD/MM/AAAA';
-      } else {
-        // Verificar se a data não é no passado
-        const [day, month, year] = expiryDate.split('/');
-        const selectedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        if (selectedDate < today) {
-          errors.expiryDate = 'Data de validade deve ser futura';
-        }
-      }
-    }
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const isValidDate = (dateStr: string): boolean => {
-    const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-    const match = dateStr.match(regex);
-    if (!match) return false;
-
-    const [, day, month, year] = match;
-    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    return (
-      date.getDate() === parseInt(day) &&
-      date.getMonth() === parseInt(month) - 1 &&
-      date.getFullYear() === parseInt(year)
-    );
-  };
-
-  const isValidTime = (timeStr: string): boolean => {
-    const regex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-    return regex.test(timeStr);
   };
 
   /**
@@ -251,7 +203,7 @@ export default function AddMedicationScreen() {
       const selectedOption = FREQUENCY_OPTIONS.find((option) => option.value === selectedFrequency);
       const frequencyEnumValue = selectedOption?.enumValue || 'ONE_TIME';
 
-      const formData = {
+      const formData: CreateMedicationData = {
         name: name.trim(),
         dosage: dosage.trim(),
         frequency: frequencyEnumValue,
@@ -265,7 +217,6 @@ export default function AddMedicationScreen() {
       await createMedication(formData);
       router.back();
     } catch (error) {
-
       // Toast já é mostrado pelo hook
     }
   };

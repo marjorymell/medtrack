@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
 import { Subscription } from 'expo-notifications';
-import { NotificationData } from '../types/notification';
+import { NotificationData } from '@/types/notification';
 
 /**
  * Hook para gerenciar notificações recebidas e interações do usuário
@@ -27,8 +27,6 @@ export function useNotificationHandler(
 
     // Listener para notificações recebidas
     notificationListener.current = Notifications.addNotificationReceivedListener((notification) => {
-
-
       if (onNotificationReceived) {
         onNotificationReceived(notification);
       }
@@ -36,8 +34,6 @@ export function useNotificationHandler(
 
     // Listener para respostas/interações do usuário
     responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
-
-
       if (onNotificationResponse) {
         onNotificationResponse(response);
       }
@@ -53,10 +49,10 @@ export function useNotificationHandler(
 
     return () => {
       if (notificationListener.current) {
-        Notifications.removeNotificationSubscription(notificationListener.current);
+        notificationListener.current.remove();
       }
       if (responseListener.current) {
-        Notifications.removeNotificationSubscription(responseListener.current);
+        responseListener.current.remove();
       }
     };
   }, [onNotificationReceived, onNotificationResponse]);
@@ -88,7 +84,6 @@ export function useNotificationHandler(
         break;
 
       default:
-
     }
   };
 
@@ -113,11 +108,7 @@ export function useNotificationHandler(
           },
         },
       ]);
-
-
-    } catch (error) {
-
-    }
+    } catch (error) {}
   };
 
   /**
@@ -126,10 +117,7 @@ export function useNotificationHandler(
   const clearAllNotifications = async () => {
     try {
       await Notifications.dismissAllNotificationsAsync();
-
-    } catch (error) {
-
-    }
+    } catch (error) {}
   };
 
   /**
@@ -140,7 +128,6 @@ export function useNotificationHandler(
       const notifications = await Notifications.getPresentedNotificationsAsync();
       return notifications;
     } catch (error) {
-
       return [];
     }
   };

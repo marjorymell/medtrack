@@ -13,6 +13,8 @@ import { useFonts } from 'expo-font';
 import { Manrope_400Regular, Manrope_500Medium, Manrope_700Bold } from '@expo-google-fonts/manrope';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/query-client';
+import Toast from 'react-native-toast-message';
+import { toastConfig } from '@/utils/toast';
 
 export const unstable_settings = {
   initialRouteName: 'index',
@@ -42,7 +44,6 @@ export default function RootLayout() {
                 <Stack.Screen name="index" options={{ headerShown: false }} />
                 <Stack.Screen name="add-medication" options={{ headerShown: false }} />
                 <Stack.Screen name="edit-medication" options={{ headerShown: false }} />
-                <Stack.Screen name="reminder-notification" options={{ headerShown: false }} />
                 <Stack.Screen name="edit-profile" options={{ headerShown: false }} />
                 <Stack.Screen name="notification-settings" options={{ headerShown: false }} />
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -50,6 +51,7 @@ export default function RootLayout() {
               </Stack>
             </AuthGuard>
             <PortalHost />
+            <Toast config={toastConfig} />
           </NavigationThemeProvider>
         </AuthProvider>
       </QueryClientProvider>
