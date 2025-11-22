@@ -16,11 +16,9 @@ export function useDeviceToken() {
 
   // Carregar token automaticamente quando o componente monta
   useEffect(() => {
-    console.log('[DeviceToken] Hook inicializado, userId:', user?.id);
     if (user?.id) {
       loadExistingToken();
     } else {
-      console.log('[DeviceToken] Usuário não autenticado, aguardando...');
       setIsLoading(false);
     }
   }, [user?.id]);
@@ -28,14 +26,10 @@ export function useDeviceToken() {
   // Carregar token existente do dispositivo
   const loadExistingToken = async () => {
     try {
-      console.log('[DeviceToken] Verificando se já existe token registrado para userId:', user?.id);
-
       // Verificar se as permissões foram concedidas
       const { status } = await Notifications.getPermissionsAsync();
-      console.log('[DeviceToken] Status das permissões:', status);
 
       if (status !== 'granted') {
-        console.log('[DeviceToken] Permissões não concedidas');
         setDeviceToken(null);
         setIsLoading(false);
         return;
@@ -44,7 +38,6 @@ export function useDeviceToken() {
       // Tentar obter token do dispositivo
       const tokenData = await Notifications.getExpoPushTokenAsync();
       const token = tokenData.data;
-      console.log('[DeviceToken] Token obtido do dispositivo:', token.substring(0, 20) + '...');
 
       const deviceTokenData: DeviceToken = {
         token,
@@ -53,9 +46,7 @@ export function useDeviceToken() {
       };
 
       setDeviceToken(deviceTokenData);
-      console.log('[DeviceToken] Token definido no state:', deviceTokenData);
     } catch (error: any) {
-      console.error('[DeviceToken] Erro ao carregar token existente:', error);
       setError(error.message || 'Erro ao carregar token');
       setDeviceToken(null);
     } finally {
@@ -71,7 +62,6 @@ export function useDeviceToken() {
       // Verificar se as permissões foram concedidas
       const { status } = await Notifications.getPermissionsAsync();
       if (status !== 'granted') {
-        console.log('[DeviceToken] Permissões não concedidas, pulando obtenção do token');
         setDeviceToken(null);
         return null;
       }
@@ -87,11 +77,9 @@ export function useDeviceToken() {
       };
 
       setDeviceToken(deviceTokenData);
-      console.log('[DeviceToken] Token obtido:', token.substring(0, 20) + '...');
 
       return deviceTokenData;
     } catch (error: any) {
-      console.error('[DeviceToken] Erro ao obter token:', error);
       setError(error.message || 'Erro ao obter token do dispositivo');
       return null;
     }
@@ -100,7 +88,6 @@ export function useDeviceToken() {
   // Registrar token no backend
   const registerToken = async (tokenData: DeviceToken, userId: string) => {
     if (!tokenData) {
-      console.warn('[DeviceToken] Nenhum token fornecido para registrar');
       return false;
     }
 
@@ -110,10 +97,8 @@ export function useDeviceToken() {
 
       const response = await notificationService.registerDeviceToken(tokenWithUser);
 
-      console.log('[DeviceToken] Token registrado com sucesso no backend');
       return true;
     } catch (error: any) {
-      console.error('[DeviceToken] Erro ao registrar token:', error.message || error);
       setError(error.message || 'Erro ao registrar token');
       return false;
     }
@@ -123,7 +108,6 @@ export function useDeviceToken() {
   const clearToken = () => {
     setDeviceToken(null);
     setError(null);
-    console.log('[DeviceToken] Token limpo');
   };
 
   return {

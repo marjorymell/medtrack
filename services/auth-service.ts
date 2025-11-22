@@ -37,8 +37,6 @@ class AuthService {
    */
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     try {
-      console.log('[AuthService] Fazendo login...');
-
       const response = await fetch(`${API_URL}/users/login`, {
         method: 'POST',
         headers: {
@@ -54,13 +52,10 @@ class AuthService {
 
       const data: AuthResponse = await response.json();
 
-      // Salvar token e dados do usuário
       await this.saveAuthData(data.token, data.user);
 
-      console.log('[AuthService] Login realizado com sucesso');
       return data;
     } catch (error: any) {
-      console.error('[AuthService] Erro no login:', error);
       throw error;
     }
   }
@@ -70,8 +65,6 @@ class AuthService {
    */
   async register(userData: RegisterRequest): Promise<AuthResponse> {
     try {
-      console.log('[AuthService] Registrando usuário...');
-
       const response = await fetch(`${API_URL}/users/register`, {
         method: 'POST',
         headers: {
@@ -87,13 +80,10 @@ class AuthService {
 
       const data: AuthResponse = await response.json();
 
-      // Salvar token e dados do usuário
       await this.saveAuthData(data.token, data.user);
 
-      console.log('[AuthService] Usuário registrado com sucesso');
       return data;
     } catch (error: any) {
-      console.error('[AuthService] Erro no registro:', error);
       throw error;
     }
   }
@@ -103,14 +93,8 @@ class AuthService {
    */
   async logout(): Promise<void> {
     try {
-      console.log('[AuthService] Fazendo logout...');
-
-      // Limpar dados armazenados
       await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY]);
-
-      console.log('[AuthService] Logout realizado com sucesso');
     } catch (error: any) {
-      console.error('[AuthService] Erro no logout:', error);
       throw error;
     }
   }
@@ -133,13 +117,8 @@ class AuthService {
   async getToken(): Promise<string | null> {
     try {
       const token = await AsyncStorage.getItem(TOKEN_KEY);
-      console.log(
-        '[AuthService] Token recuperado do AsyncStorage:',
-        token ? 'PRESENTE' : 'AUSENTE'
-      );
       return token;
     } catch (error) {
-      console.error('[AuthService] Erro ao obter token:', error);
       return null;
     }
   }
@@ -166,7 +145,6 @@ class AuthService {
         [USER_KEY, JSON.stringify(user)],
       ]);
     } catch (error) {
-      console.error('[AuthService] Erro ao salvar dados de auth:', error);
       throw error;
     }
   }

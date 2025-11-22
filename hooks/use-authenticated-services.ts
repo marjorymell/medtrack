@@ -27,7 +27,7 @@ export function useAuthenticatedServices() {
       showToast('Medicamento confirmado com sucesso!', 'success');
     },
     onError: (err: any) => {
-      console.error('Erro ao confirmar medicamento:', err);
+
       showToast('Não foi possível confirmar o medicamento', 'error');
     },
   });
@@ -47,7 +47,7 @@ export function useAuthenticatedServices() {
       queryClient.invalidateQueries({ queryKey: ['medications'] });
     },
     onError: (err: any) => {
-      console.error('Erro ao adiar medicamento:', err);
+
       showToast('Não foi possível adiar o medicamento', 'error');
     },
   });
@@ -61,7 +61,7 @@ export function useAuthenticatedServices() {
       showToast('Dispositivo registrado para notificações', 'success');
     },
     onError: (err: any) => {
-      console.error('Erro ao registrar dispositivo:', err);
+
       showToast('Erro ao registrar dispositivo', 'error');
     },
   });
@@ -75,7 +75,7 @@ export function useAuthenticatedServices() {
       showToast('Notificação agendada com sucesso', 'success');
     },
     onError: (err: any) => {
-      console.error('Erro ao agendar notificação:', err);
+
       showToast('Erro ao agendar notificação', 'error');
     },
   });
@@ -89,7 +89,7 @@ export function useAuthenticatedServices() {
       showToast('Notificação cancelada com sucesso', 'success');
     },
     onError: (err: any) => {
-      console.error('Erro ao cancelar notificação:', err);
+
       showToast('Erro ao cancelar notificação', 'error');
     },
   });
@@ -105,7 +105,7 @@ export function useAuthenticatedServices() {
       showToast('Configurações atualizadas com sucesso', 'success');
     },
     onError: (err: any) => {
-      console.error('Erro ao atualizar configurações:', err);
+
       showToast('Erro ao atualizar configurações', 'error');
     },
   });

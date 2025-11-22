@@ -265,7 +265,7 @@ export default function AddMedicationScreen() {
       await createMedication(formData);
       router.back();
     } catch (error) {
-      console.error('Erro ao salvar medicamento:', error);
+
       // Toast já é mostrado pelo hook
     }
   };

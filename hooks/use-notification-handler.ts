@@ -27,7 +27,7 @@ export function useNotificationHandler(
 
     // Listener para notificações recebidas
     notificationListener.current = Notifications.addNotificationReceivedListener((notification) => {
-      console.log('[NotificationHandler] Notificação recebida:', notification);
+
 
       if (onNotificationReceived) {
         onNotificationReceived(notification);
@@ -36,7 +36,7 @@ export function useNotificationHandler(
 
     // Listener para respostas/interações do usuário
     responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
-      console.log('[NotificationHandler] Resposta da notificação:', response);
+
 
       if (onNotificationResponse) {
         onNotificationResponse(response);
@@ -72,28 +72,23 @@ export function useNotificationHandler(
 
     switch (actionIdentifier) {
       case Notifications.DEFAULT_ACTION_IDENTIFIER:
-        // Usuário tocou na notificação (ação padrão)
-        console.log(
-          '[NotificationHandler] Usuário tocou na notificação de medicamento:',
-          data.medicationName
-        );
-        // Aqui você pode navegar para a tela de confirmação de dose
+        // Usuário tocou na notificação (ação padrão)// Aqui você pode navegar para a tela de confirmação de dose
         break;
 
       case 'TAKE_DOSE':
         // Usuário confirmou que tomou a dose
-        console.log('[NotificationHandler] Usuário confirmou dose:', data.medicationName);
+
         // Aqui você pode registrar a dose tomada
         break;
 
       case 'SNOOZE':
         // Usuário adiou o lembrete
-        console.log('[NotificationHandler] Usuário adiou lembrete:', data.medicationName);
+
         // Aqui você pode reagendar a notificação
         break;
 
       default:
-        console.log('[NotificationHandler] Ação desconhecida:', actionIdentifier);
+
     }
   };
 
@@ -119,9 +114,9 @@ export function useNotificationHandler(
         },
       ]);
 
-      console.log('[NotificationHandler] Categoria de notificação de medicamento configurada');
+
     } catch (error) {
-      console.error('[NotificationHandler] Erro ao configurar categoria:', error);
+
     }
   };
 
@@ -131,9 +126,9 @@ export function useNotificationHandler(
   const clearAllNotifications = async () => {
     try {
       await Notifications.dismissAllNotificationsAsync();
-      console.log('[NotificationHandler] Todas as notificações foram limpas');
+
     } catch (error) {
-      console.error('[NotificationHandler] Erro ao limpar notificações:', error);
+
     }
   };
 
@@ -145,7 +140,7 @@ export function useNotificationHandler(
       const notifications = await Notifications.getPresentedNotificationsAsync();
       return notifications;
     } catch (error) {
-      console.error('[NotificationHandler] Erro ao obter notificações apresentadas:', error);
+
       return [];
     }
   };

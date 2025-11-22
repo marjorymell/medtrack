@@ -43,7 +43,7 @@ export function useCreateMedication() {
       showToast('Medicamento criado com sucesso!', 'success');
     },
     onError: (err: any) => {
-      console.error('Erro ao criar medicamento:', err);
+
       showToast('Erro ao criar medicamento', 'error');
     },
   });

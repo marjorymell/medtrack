@@ -8,7 +8,7 @@ const createAsyncStoragePersistor = () => ({
       const cache = JSON.stringify(client.getQueryCache().getAll());
       await AsyncStorage.setItem('medtrack-query-cache', cache);
     } catch (error) {
-      console.warn('Failed to persist query cache:', error);
+
     }
   },
   restoreClient: async () => {
@@ -16,7 +16,7 @@ const createAsyncStoragePersistor = () => ({
       const cache = await AsyncStorage.getItem('medtrack-query-cache');
       return cache ? JSON.parse(cache) : undefined;
     } catch (error) {
-      console.warn('Failed to restore query cache:', error);
+
       return undefined;
     }
   },
@@ -24,7 +24,7 @@ const createAsyncStoragePersistor = () => ({
     try {
       await AsyncStorage.removeItem('medtrack-query-cache');
     } catch (error) {
-      console.warn('Failed to remove query cache:', error);
+
     }
   },
 });

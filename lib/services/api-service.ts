@@ -61,17 +61,17 @@ export class ApiService {
       // Adiciona token de autenticação se necessário
       if (requiresAuth) {
         const token = await authService.getToken();
-        console.log('[API] Token obtido do authService:', token ? 'PRESENTE' : 'AUSENTE');
+
         if (token) {
           requestHeaders.Authorization = `Bearer ${token}`;
-          console.log('[API] Header Authorization adicionado com token');
+
         } else if (requiresAuth) {
-          console.log('[API] Token não encontrado, falhando requisição');
+
           throw new Error('Token de autenticação não encontrado');
         }
       }
 
-      console.log(`[API] ${fetchOptions.method || 'GET'} ${url}`);
+
 
       // Controller para timeout
       const controller = new AbortController();
@@ -89,10 +89,10 @@ export class ApiService {
       // Trata resposta
       const responseData = await this.parseResponse<T>(response);
 
-      console.log(`[API] ✓ ${response.status} ${endpoint}`);
+
       return responseData;
     } catch (error: any) {
-      console.error(`[API] ✗ Erro em ${endpoint}:`, error);
+
 
       // Trata diferentes tipos de erro
       if (error.name === 'AbortError') {

@@ -272,7 +272,7 @@ export default function EditMedicationScreen() {
       await updateMedication(medication.id, formData);
       router.back();
     } catch (error) {
-      console.error('Erro ao atualizar medicamento:', error);
+
       // Toast já é mostrado pelo hook
     }
   };

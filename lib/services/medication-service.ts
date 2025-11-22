@@ -16,14 +16,9 @@ class MedicationService extends ApiService {
    */
   async getTodayMedications(): Promise<TodayMedication[]> {
     try {
-      console.log('[MedicationService] Buscando medicamentos de hoje...');
-
       const response = await this.get<TodayMedication[]>('/medications/today');
-
-      console.log(`[MedicationService] ✓ Retornando ${response.data?.length || 0} medicamentos`);
       return response.data || [];
     } catch (error) {
-      console.error('[MedicationService] ✗ Erro ao buscar medicamentos:', error);
       throw error;
     }
   }
@@ -34,19 +29,14 @@ class MedicationService extends ApiService {
    */
   async confirmMedication(scheduleId: string): Promise<ApiResponse<void>> {
     try {
-      console.log(`[MedicationService] Confirmando medicamento: ${scheduleId}`);
-
       const response = await this.post<void>('/history', {
         scheduleId,
         action: 'TAKEN',
         quantity: 1, // Quantidade padrão para decremento de estoque
         notes: `Confirmado em ${new Date().toLocaleString('pt-BR')}`,
       });
-
-      console.log('[MedicationService] ✓ Medicamento confirmado com sucesso');
       return response;
     } catch (error) {
-      console.error('[MedicationService] ✗ Erro ao confirmar medicamento:', error);
       throw error;
     }
   }
@@ -60,10 +50,6 @@ class MedicationService extends ApiService {
     postponeMinutes: number = 30
   ): Promise<ApiResponse<void>> {
     try {
-      console.log(
-        `[MedicationService] Adiando medicamento: ${scheduleId} por ${postponeMinutes} minutos`
-      );
-
       const postponedTo = new Date();
       postponedTo.setMinutes(postponedTo.getMinutes() + postponeMinutes);
 
@@ -72,13 +58,8 @@ class MedicationService extends ApiService {
         action: 'POSTPONED',
         postponedTo: postponedTo.toISOString(),
       });
-
-      console.log(
-        `[MedicationService] ✓ Medicamento adiado para ${postponedTo.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
-      );
       return response;
     } catch (error) {
-      console.error('[MedicationService] ✗ Erro ao adiar medicamento:', error);
       throw error;
     }
   }
@@ -89,19 +70,14 @@ class MedicationService extends ApiService {
    */
   async getMedicationHistory(startDate?: string, endDate?: string): Promise<MedicationHistory[]> {
     try {
-      console.log('[MedicationService] Buscando histórico de medicamentos');
-
       const params = new URLSearchParams();
       if (startDate) params.append('startDate', startDate);
       if (endDate) params.append('endDate', endDate);
 
       const endpoint = `/history/me?${params.toString()}`;
       const response = await this.get<MedicationHistory[]>(endpoint);
-
-      console.log(`[MedicationService] ✓ Retornando ${response.data?.length || 0} registros`);
       return response.data || [];
     } catch (error) {
-      console.error('[MedicationService] ✗ Erro ao buscar histórico:', error);
       throw error;
     }
   }
@@ -112,14 +88,9 @@ class MedicationService extends ApiService {
    */
   async getAdherenceRate(days: number = 7): Promise<number> {
     try {
-      console.log(`[MedicationService] Calculando taxa de adesão dos últimos ${days} dias`);
-
       const response = await this.get<number>(`/history/adherence?days=${days}`);
-
-      console.log(`[MedicationService] ✓ Taxa de adesão: ${response.data?.toFixed(1)}%`);
       return response.data || 0;
     } catch (error) {
-      console.error('[MedicationService] ✗ Erro ao calcular adesão:', error);
       throw error;
     }
   }
@@ -133,7 +104,6 @@ class MedicationService extends ApiService {
       const response = await this.get<any[]>('/medications');
       return response;
     } catch (error) {
-      console.error('[MedicationService] ✗ Erro ao buscar medicamentos:', error);
       throw error;
     }
   }
@@ -144,18 +114,11 @@ class MedicationService extends ApiService {
    */
   async updateMedicationStock(medicationId: string, newStock: number): Promise<ApiResponse<any>> {
     try {
-      console.log(
-        `[MedicationService] Atualizando estoque do medicamento ${medicationId} para ${newStock}`
-      );
-
       const response = await this.put<any>(`/medications/${medicationId}/stock`, {
         stock: newStock,
       });
-
-      console.log('[MedicationService] ✓ Estoque atualizado com sucesso');
       return response;
     } catch (error) {
-      console.error('[MedicationService] ✗ Erro ao atualizar estoque:', error);
       throw error;
     }
   }
@@ -166,16 +129,9 @@ class MedicationService extends ApiService {
    */
   async getLowStockMedications(threshold: number = 5): Promise<ApiResponse<any[]>> {
     try {
-      console.log(`[MedicationService] Buscando medicamentos com estoque baixo (<= ${threshold})`);
-
       const response = await this.get<any[]>(`/medications/stock/low?threshold=${threshold}`);
-
-      console.log(
-        `[MedicationService] ✓ Retornando ${response.data?.length || 0} medicamentos com estoque baixo`
-      );
       return response;
     } catch (error) {
-      console.error('[MedicationService] ✗ Erro ao buscar medicamentos com estoque baixo:', error);
       throw error;
     }
   }
@@ -186,16 +142,9 @@ class MedicationService extends ApiService {
    */
   async getOutOfStockMedications(): Promise<ApiResponse<any[]>> {
     try {
-      console.log('[MedicationService] Buscando medicamentos sem estoque');
-
       const response = await this.get<any[]>('/medications/stock/out');
-
-      console.log(
-        `[MedicationService] ✓ Retornando ${response.data?.length || 0} medicamentos sem estoque`
-      );
       return response;
     } catch (error) {
-      console.error('[MedicationService] ✗ Erro ao buscar medicamentos sem estoque:', error);
       throw error;
     }
   }
@@ -206,14 +155,9 @@ class MedicationService extends ApiService {
    */
   async createMedication(medicationData: any): Promise<ApiResponse<any>> {
     try {
-      console.log('[MedicationService] Criando novo medicamento:', medicationData.name);
-
       const response = await this.post<any>('/medications', medicationData);
-
-      console.log('[MedicationService] ✓ Medicamento criado com sucesso');
       return response;
     } catch (error) {
-      console.error('[MedicationService] ✗ Erro ao criar medicamento:', error);
       throw error;
     }
   }
@@ -224,17 +168,9 @@ class MedicationService extends ApiService {
    */
   async updateMedication(medicationId: string, medicationData: any): Promise<ApiResponse<any>> {
     try {
-      console.log(
-        `[MedicationService] Atualizando medicamento ${medicationId}:`,
-        medicationData.name
-      );
-
       const response = await this.put<any>(`/medications/${medicationId}`, medicationData);
-
-      console.log('[MedicationService] ✓ Medicamento atualizado com sucesso');
       return response;
     } catch (error) {
-      console.error('[MedicationService] ✗ Erro ao atualizar medicamento:', error);
       throw error;
     }
   }
@@ -245,14 +181,9 @@ class MedicationService extends ApiService {
    */
   async deleteMedication(medicationId: string): Promise<ApiResponse<void>> {
     try {
-      console.log(`[MedicationService] Deletando medicamento ${medicationId}`);
-
       const response = await this.delete<void>(`/medications/${medicationId}`);
-
-      console.log('[MedicationService] ✓ Medicamento deletado com sucesso');
       return response;
     } catch (error) {
-      console.error('[MedicationService] ✗ Erro ao deletar medicamento:', error);
       throw error;
     }
   }

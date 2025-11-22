@@ -77,11 +77,7 @@ export function NotificationSettingsScreen() {
         quietHoursStart: newSettings.quietHoursStart || null,
         quietHoursEnd: newSettings.quietHoursEnd || null,
       });
-
-      console.log(`Configuração ${String(key)} atualizada:`, value);
-    } catch (error) {
-      console.error(`Erro ao atualizar ${String(key)}:`, error);
-      Alert.alert('Erro', 'Não foi possível salvar a configuração. Tente novamente.');
+      Alert.alert('Sucesso', 'Configuração salva com sucesso.');
       // Reverter mudança em caso de erro
       setSettings(settings);
     } finally {
@@ -110,17 +106,12 @@ export function NotificationSettingsScreen() {
         // Obter token do dispositivo (agora que as permissões foram concedidas)
         const token = await getDeviceToken();
         if (token && user?.id) {
-          console.log('[NotificationSettings] Registrando token para usuário:', user.id);
           await registerDeviceToken({
             token: token.token,
             platform: token.platform,
             userId: user.id,
           });
         } else {
-          console.warn('[NotificationSettings] Token ou user ID não disponível:', {
-            token: !!token,
-            userId: user?.id,
-          });
           Alert.alert(
             'Erro',
             'Não foi possível ativar notificações push. Usuário não autenticado.'
@@ -129,7 +120,6 @@ export function NotificationSettingsScreen() {
           await updateSetting('enablePush', false);
         }
       } catch (error) {
-        console.error('Erro ao obter/registrar token:', error);
         Alert.alert('Erro', 'Não foi possível ativar notificações push. Tente novamente.');
         // Reverter a configuração em caso de erro
         await updateSetting('enablePush', false);

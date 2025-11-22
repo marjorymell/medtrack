@@ -85,7 +85,6 @@ export default function HomeScreen() {
   // Refetch quando a tela receber foco
   useFocusEffect(
     useCallback(() => {
-      console.log('[HomeScreen] Tela recebeu foco, fazendo refetch...');
       refetch();
     }, [refetch])
   );

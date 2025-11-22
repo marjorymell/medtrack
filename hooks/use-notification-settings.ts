@@ -49,7 +49,7 @@ export function useNotificationSettings() {
       showToast('Configurações atualizadas com sucesso', 'success');
     },
     onError: (err: any) => {
-      console.error('Erro ao atualizar configurações:', err);
+
       showToast('Erro ao atualizar configurações', 'error');
     },
   });
@@ -67,7 +67,7 @@ export function useNotificationSettings() {
       showToast('Dispositivo registrado para notificações', 'success');
     },
     onError: (err: any) => {
-      console.error('Erro ao registrar dispositivo:', err);
+
       showToast('Erro ao registrar dispositivo', 'error');
     },
   });

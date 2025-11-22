@@ -51,7 +51,7 @@ export default function EditProfileScreen() {
       showToast('Perfil atualizado com sucesso!', 'success');
       router.back();
     } catch (error: any) {
-      console.error('Erro ao atualizar perfil:', error);
+
       showToast(error.message || 'Erro ao atualizar perfil', 'error');
     } finally {
       setIsLoading(false);
@@ -72,7 +72,7 @@ export default function EditProfileScreen() {
             await logout();
             router.replace('/');
           } catch (error) {
-            console.error('Erro ao fazer logout:', error);
+
           }
         },
       },

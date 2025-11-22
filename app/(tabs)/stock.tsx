@@ -126,19 +126,10 @@ export default function StockScreen() {
       return;
     }
 
-    console.log(
-      `[StockScreen] Iniciando updateStock para ${selectedMedication.id} com valor ${stock}`
-    );
-    try {
-      await updateStock(selectedMedication.id, stock);
-      console.log(`[StockScreen] updateStock concluído, fechando modal`);
-      setStockModalVisible(false);
-      setSelectedMedication(null);
-      setNewStockValue('');
-    } catch (error) {
-      console.log(`[StockScreen] Erro em updateStock:`, error);
-      // Erro já tratado no hook
-    }
+    await updateStock(selectedMedication.id, stock);
+    setStockModalVisible(false);
+    setSelectedMedication(null);
+    setNewStockValue('');
   };
 
   const handleCancelUpdateStock = () => {

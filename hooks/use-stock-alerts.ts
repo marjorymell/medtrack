@@ -48,7 +48,7 @@ export function useStockAlerts() {
         });
       }
     } catch (error) {
-      console.error('[StockAlerts] Erro ao verificar alertas de estoque:', error);
+
     }
   }, [token]);
 
@@ -110,10 +110,10 @@ export function useStockAlerts() {
           },
         });
 
-        console.log('[StockAlerts] Notificação de estoque agendada para amanhã');
+
       }
     } catch (error) {
-      console.error('[StockAlerts] Erro ao agendar notificações de estoque:', error);
+
     }
   }, [token]);
 

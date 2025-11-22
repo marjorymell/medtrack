@@ -33,7 +33,7 @@ export function useNotificationScheduler() {
 
         // Verificar se o horário já passou
         if (reminderTime <= new Date()) {
-          console.warn('[NotificationScheduler] Horário já passou, pulando agendamento');
+
           return null;
         }
 
@@ -70,10 +70,7 @@ export function useNotificationScheduler() {
         };
 
         // Adicionar à lista
-        setScheduledNotifications((prev) => [...prev, scheduledNotification]);
-
-        console.log(
-          `[NotificationScheduler] Notificação agendada: ${medicationName} às ${scheduledTime.toLocaleTimeString()}`
+        setScheduledNotifications((prev) => [...prev, scheduledNotification]);}`
         );
 
         // Tentar agendar também no backend (se disponível)
@@ -87,17 +84,12 @@ export function useNotificationScheduler() {
           };
 
           await notificationService.scheduleNotification(backendRequest);
-          console.log('[NotificationScheduler] Notificação também agendada no backend');
-        } catch (backendError) {
-          console.warn(
-            '[NotificationScheduler] Backend não disponível, mantendo apenas local:',
-            backendError
-          );
-        }
+
+        } catch (backendError) {}
 
         return notificationId;
       } catch (error: any) {
-        console.error('[NotificationScheduler] Erro ao agendar notificação:', error);
+
         setError(error.message || 'Erro ao agendar notificação');
         return null;
       } finally {
@@ -122,19 +114,19 @@ export function useNotificationScheduler() {
         prev.filter((notification) => notification.id !== notificationId)
       );
 
-      console.log(`[NotificationScheduler] Notificação cancelada: ${notificationId}`);
+
 
       // Tentar cancelar no backend também
       try {
         await notificationService.cancelNotification(notificationId);
-        console.log('[NotificationScheduler] Notificação cancelada no backend');
+
       } catch (backendError) {
-        console.warn('[NotificationScheduler] Erro ao cancelar no backend:', backendError);
+
       }
 
       return true;
     } catch (error: any) {
-      console.error('[NotificationScheduler] Erro ao cancelar notificação:', error);
+
       setError(error.message || 'Erro ao cancelar notificação');
       return false;
     }
@@ -158,18 +150,8 @@ export function useNotificationScheduler() {
           cancelNotification(notification.id)
         );
 
-        await Promise.all(cancelPromises);
-
-        console.log(
-          `[NotificationScheduler] Todas as notificações do medicamento ${medicationId} foram canceladas`
-        );
-        return true;
-      } catch (error: any) {
-        console.error(
-          '[NotificationScheduler] Erro ao cancelar notificações do medicamento:',
-          error
-        );
-        setError(error.message || 'Erro ao cancelar notificações');
+        await Promise.all(cancelPromises);return true;
+      } catch (error: any) {setError(error.message || 'Erro ao cancelar notificações');
         return false;
       }
     },
@@ -207,14 +189,9 @@ export function useNotificationScheduler() {
         );
 
         const results = await Promise.all(schedulePromises);
-        const successCount = results.filter((id) => id !== null).length;
-
-        console.log(
-          `[NotificationScheduler] Reagendadas ${successCount}/${newSchedule.length} notificações para ${medicationName}`
-        );
-        return successCount > 0;
+        const successCount = results.filter((id) => id !== null).length;return successCount > 0;
       } catch (error: any) {
-        console.error('[NotificationScheduler] Erro ao reagendar notificações:', error);
+
         setError(error.message || 'Erro ao reagendar notificações');
         return false;
       }
@@ -242,7 +219,7 @@ export function useNotificationScheduler() {
       setScheduledNotifications(notifications);
       return notifications;
     } catch (error: any) {
-      console.error('[NotificationScheduler] Erro ao obter notificações agendadas:', error);
+
       return [];
     }
   }, []);

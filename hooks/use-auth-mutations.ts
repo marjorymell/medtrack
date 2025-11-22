@@ -21,7 +21,7 @@ export function useAuthMutations() {
       showToast('Login realizado com sucesso!', 'success');
     },
     onError: (err: any) => {
-      console.error('Erro no login:', err);
+
       showToast(err.message || 'Erro no login', 'error');
     },
   });
@@ -39,7 +39,7 @@ export function useAuthMutations() {
       showToast('Conta criada com sucesso!', 'success');
     },
     onError: (err: any) => {
-      console.error('Erro no registro:', err);
+
       showToast(err.message || 'Erro ao criar conta', 'error');
     },
   });
@@ -55,7 +55,7 @@ export function useAuthMutations() {
       showToast('Logout realizado com sucesso', 'success');
     },
     onError: (err: any) => {
-      console.error('Erro no logout:', err);
+
       showToast('Erro ao fazer logout', 'error');
     },
   });

@@ -292,7 +292,7 @@ export default function HistoryScreen() {
         const processedData = processHistoryData(rawData);
         setDailyHistory(processedData);
       } catch (err) {
-        console.error('[API] Erro ao carregar histórico:', err);
+
       } finally {
         setIsLoading(false);
       }

@@ -21,7 +21,6 @@ export function useMedications() {
   const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
 
-  // Query para buscar medicamentos
   const {
     data: medications = [],
     isLoading: loading,
@@ -30,14 +29,12 @@ export function useMedications() {
   } = useQuery({
     queryKey: ['medications'],
     queryFn: async () => {
-      console.log('[useMedications] Fazendo chamada para medicationService.getMedications()...');
       const response = await medicationService.getMedications();
 
       if (!response.success) {
         throw new Error(response.error?.message || 'Erro na API');
       }
 
-      // Extrair dados da resposta paginada
       const data = response.data as any;
       let medicationsData: Medication[] = [];
 
@@ -47,34 +44,29 @@ export function useMedications() {
         medicationsData = data;
       }
 
-      console.log('[useMedications] Retornando medicamentos:', medicationsData.length, 'itens');
       return medicationsData;
     },
-    enabled: isAuthenticated, // Só executar se estiver autenticado
-    staleTime: 1 * 60 * 1000, // 1 minuto (reduzido para atualizar mais frequentemente)
-    gcTime: 10 * 60 * 1000, // 10 minutos
-    refetchOnMount: true, // IMPORTANTE: Sempre refetch ao montar o componente
-    refetchOnWindowFocus: false, // Mobile não precisa
+    enabled: isAuthenticated,
+    staleTime: 1 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
 
-  // Mutation para criar medicamento
   const createMedicationMutation = useMutation({
     mutationFn: async (medicationData: Omit<Medication, 'id' | 'createdAt' | 'updatedAt'>) => {
       const response = await medicationService.createMedication(medicationData);
       return response.data;
     },
     onSuccess: () => {
-      // Invalidar e refetch da query de medicamentos
       queryClient.invalidateQueries({ queryKey: ['medications'] });
       showToast('Medicamento criado com sucesso', 'success');
     },
-    onError: (err: any) => {
-      console.error('Erro ao criar medicamento:', err);
+    onError: () => {
       showToast('Erro ao criar medicamento', 'error');
     },
   });
 
-  // Mutation para atualizar medicamento
   const updateMedicationMutation = useMutation({
     mutationFn: async ({
       medicationId,
@@ -87,18 +79,15 @@ export function useMedications() {
       return response.data;
     },
     onSuccess: () => {
-      // Invalidar queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['medications'] });
       queryClient.invalidateQueries({ queryKey: ['today-medications'] });
       showToast('Medicamento atualizado com sucesso', 'success');
     },
     onError: (err: any) => {
-      console.error('Erro ao atualizar medicamento:', err);
       showToast(`Erro ao atualizar medicamento: ${err.message || 'Erro desconhecido'}`, 'error');
     },
   });
 
-  // Mutation para deletar medicamento
   const deleteMedicationMutation = useMutation({
     mutationFn: async (medicationId: string) => {
       const response = await medicationService.deleteMedication(medicationId);
@@ -108,30 +97,25 @@ export function useMedications() {
       return response;
     },
     onSuccess: () => {
-      // Invalidar queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['medications'] });
       queryClient.invalidateQueries({ queryKey: ['today-medications'] });
       showToast('Medicamento removido com sucesso', 'success');
     },
     onError: (err: any) => {
-      console.error('Erro ao deletar medicamento:', err);
       const errorMessage = err.message || err.error?.message || 'Erro desconhecido';
       showToast(`Erro ao remover medicamento: ${errorMessage}`, 'error');
     },
   });
 
-  // Mutation para atualizar estoque
   const updateStockMutation = useMutation({
     mutationFn: async ({ medicationId, newStock }: { medicationId: string; newStock: number }) => {
       await medicationService.updateMedicationStock(medicationId, newStock);
     },
     onSuccess: () => {
-      // Invalidar queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['medications'] });
       showToast('Estoque atualizado com sucesso', 'success');
     },
-    onError: (err: any) => {
-      console.error('Erro ao atualizar estoque:', err);
+    onError: () => {
       showToast('Erro ao atualizar estoque', 'error');
     },
   });
@@ -164,7 +148,6 @@ export function useMedications() {
     updateMedication,
     deleteMedication,
     updateStock,
-    // Expor estados das mutations para feedback na UI
     isCreating: createMedicationMutation.isPending,
     isUpdating: updateMedicationMutation.isPending,
     isDeleting: deleteMedicationMutation.isPending,

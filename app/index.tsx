@@ -13,12 +13,12 @@ export default function IndexScreen() {
   // Redirecionamento automático baseado no estado de autenticação
   useEffect(() => {
     if (!isLoading) {
-      console.log('[IndexScreen] Verificando autenticação - isAuthenticated:', isAuthenticated);
+
       if (isAuthenticated) {
-        console.log('[IndexScreen] Usuário autenticado, redirecionando para tabs');
+
         router.replace('/(tabs)');
       } else {
-        console.log('[IndexScreen] Usuário não autenticado, mostrando tela de boas-vindas');
+
       }
     }
   }, [isAuthenticated, isLoading, router]);

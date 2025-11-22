@@ -62,7 +62,7 @@ export default function AuthScreen() {
       }
     } catch (error: any) {
       // Erro já tratado no contexto de autenticação
-      console.error('Erro na autenticação:', error);
+
     } finally {
       setIsLoading(false);
     }

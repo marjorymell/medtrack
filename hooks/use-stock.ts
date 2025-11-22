@@ -56,7 +56,7 @@ export function useStock() {
       showToast('Estoque atualizado com sucesso', 'success');
     },
     onError: (err: any) => {
-      console.error('Erro ao atualizar estoque:', err);
+
       showToast('Erro ao atualizar estoque', 'error');
     },
   });

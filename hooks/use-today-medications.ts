@@ -7,18 +7,14 @@ import { showToast } from '@/utils/toast';
 
 /**
  * Hook customizado para gerenciar os medicamentos do dia
- *
- * Usa serviço MOCK ou API real baseado na variável EXPO_PUBLIC_USE_MOCK_API
  */
 export function useTodayMedications() {
   const { token } = useAuth();
   const queryClient = useQueryClient();
 
-  // Determina qual serviço usar baseado na variável de ambiente
   const USE_MOCK = process.env.EXPO_PUBLIC_USE_MOCK_API === 'true';
   const service = USE_MOCK ? medicationServiceMock : medicationService;
 
-  // Query para buscar medicamentos do dia
   const {
     data: medications = [],
     isLoading,
@@ -27,19 +23,16 @@ export function useTodayMedications() {
   } = useQuery({
     queryKey: ['today-medications'],
     queryFn: async () => {
-      console.log('[useTodayMedications] Fazendo chamada para getTodayMedications...');
       const data = await service.getTodayMedications();
-      console.log('[useTodayMedications] Retornando', data?.length || 0, 'medicamentos');
       return data;
     },
-    enabled: !!token, // Só executar se tiver token
-    staleTime: 1 * 60 * 1000, // 1 minuto (reduzido para atualizar mais frequentemente)
-    gcTime: 5 * 60 * 1000, // 5 minutos
-    refetchOnMount: true, // IMPORTANTE: Sempre refetch ao montar o componente
-    refetchOnWindowFocus: false, // Mobile não precisa
+    enabled: !!token,
+    staleTime: 1 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
 
-  // Mutation para confirmar medicamento
   const confirmMedicationMutation = useMutation({
     mutationFn: async (scheduleId: string) => {
       const result = await service.confirmMedication(scheduleId);
@@ -49,18 +42,15 @@ export function useTodayMedications() {
       return result;
     },
     onSuccess: () => {
-      // Invalidar queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['today-medications'] });
       queryClient.invalidateQueries({ queryKey: ['medications'] });
       showToast('Medicamento confirmado com sucesso!', 'success');
     },
-    onError: (err: any) => {
-      console.error('Erro ao confirmar medicamento:', err);
+    onError: () => {
       showToast('Não foi possível confirmar o medicamento', 'error');
     },
   });
 
-  // Mutation para adiar medicamento
   const postponeMedicationMutation = useMutation({
     mutationFn: async ({ scheduleId, minutes = 30 }: { scheduleId: string; minutes?: number }) => {
       const result = await service.postponeMedication(scheduleId, minutes);
@@ -70,12 +60,10 @@ export function useTodayMedications() {
       return result;
     },
     onSuccess: () => {
-      // Invalidar queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['today-medications'] });
       queryClient.invalidateQueries({ queryKey: ['medications'] });
     },
-    onError: (err: any) => {
-      console.error('Erro ao adiar medicamento:', err);
+    onError: () => {
       showToast('Não foi possível adiar o medicamento', 'error');
     },
   });
@@ -96,7 +84,6 @@ export function useTodayMedications() {
     refetch,
     confirmMedication,
     postponeMedication,
-    // Expor estados das mutations para feedback na UI
     isConfirming: confirmMedicationMutation.isPending,
     isPostponing: postponeMedicationMutation.isPending,
   };

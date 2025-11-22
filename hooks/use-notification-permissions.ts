@@ -17,11 +17,11 @@ export function useNotificationPermissions() {
   // Verificar status atual das permissões
   const checkPermissions = async () => {
     try {
-      console.log('[NotificationPermissions] Verificando status das permissões...');
+
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       const granted = existingStatus === 'granted';
 
-      console.log('[NotificationPermissions] Status obtido:', existingStatus, 'Granted:', granted);
+
 
       setPermissionStatus({
         granted,
@@ -29,7 +29,7 @@ export function useNotificationPermissions() {
         status: existingStatus,
       });
     } catch (error) {
-      console.error('[NotificationPermissions] Erro ao verificar permissões:', error);
+
     } finally {
       setIsLoading(false);
     }
@@ -62,7 +62,7 @@ export function useNotificationPermissions() {
 
       return { granted, canAskAgain, status };
     } catch (error) {
-      console.error('[Notifications] Erro ao solicitar permissões:', error);
+
       return { granted: false, canAskAgain: false, status: 'denied' as const };
     } finally {
       setIsLoading(false);
@@ -71,7 +71,7 @@ export function useNotificationPermissions() {
 
   // Verificar permissões automaticamente quando o hook é inicializado
   useEffect(() => {
-    console.log('[NotificationPermissions] Hook inicializado, verificando permissões...');
+
     checkPermissions();
   }, []);
 

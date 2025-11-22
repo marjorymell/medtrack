@@ -43,7 +43,7 @@ export function useUser() {
       showToast('Dados atualizados com sucesso', 'success');
     },
     onError: (err: any) => {
-      console.error('Erro ao atualizar usuário:', err);
+
       showToast('Erro ao atualizar dados', 'error');
     },
   });
@@ -61,7 +61,7 @@ export function useUser() {
       showToast('Conta deletada com sucesso', 'success');
     },
     onError: (err: any) => {
-      console.error('Erro ao deletar usuário:', err);
+
       showToast('Erro ao deletar conta', 'error');
     },
   });

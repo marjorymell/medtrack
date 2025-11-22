@@ -38,18 +38,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
         authService.getUser(),
       ]);
 
-      console.log('[AuthContext] Token encontrado:', storedToken ? 'SIM' : 'NÃO');
-      console.log('[AuthContext] User encontrado:', storedUser ? 'SIM' : 'NÃO');
+
+
 
       if (storedToken && storedUser) {
         setToken(storedToken);
         setUser(storedUser);
-        console.log('[AuthContext] Dados de autenticação carregados');
+
       } else {
-        console.log('[AuthContext] Nenhum dado de autenticação encontrado');
+
       }
     } catch (error) {
-      console.error('[AuthContext] Erro ao carregar dados de autenticação:', error);
+
     } finally {
       setIsLoading(false);
     }
@@ -68,9 +68,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setToken(response.token);
 
       showToast('Login realizado com sucesso!', 'success');
-      console.log('[AuthContext] Login realizado com sucesso');
+
     } catch (error: any) {
-      console.error('[AuthContext] Erro no login:', error);
+
       showToast(error.message || 'Erro no login', 'error');
       throw error;
     } finally {
@@ -91,9 +91,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setToken(response.token);
 
       showToast('Conta criada com sucesso!', 'success');
-      console.log('[AuthContext] Registro realizado com sucesso');
+
     } catch (error: any) {
-      console.error('[AuthContext] Erro no registro:', error);
+
       showToast(error.message || 'Erro ao criar conta', 'error');
       throw error;
     } finally {
@@ -114,9 +114,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setToken(null);
 
       showToast('Logout realizado com sucesso', 'success');
-      console.log('[AuthContext] Logout realizado com sucesso');
+
     } catch (error: any) {
-      console.error('[AuthContext] Erro no logout:', error);
+
       showToast('Erro ao fazer logout', 'error');
     } finally {
       setIsLoading(false);
