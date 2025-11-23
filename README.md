@@ -1,68 +1,70 @@
-# Minimal Template
 
-This is a [React Native](https://reactnative.dev/) project built with [Expo](https://expo.dev/) and [React Native Reusables](https://reactnativereusables.com).
 
-It was initialized using the following command:
+# MedTrack (Frontend)
+Aplicativo mobile para controle de medicamentos, desenvolvido com React Native e Expo.
 
-```bash
-npx react-native-reusables/cli@latest init -t medtrack
-```
-
-## Getting Started
-
-To run the development server:
-
-```bash
-    npm run dev
-    # or
-    yarn dev
-    # or
-    pnpm dev
-    # or
-    bun dev
-```
-
-This will start the Expo Dev Server. Open the app in:
-
-- **iOS**: press `i` to launch in the iOS simulator _(Mac only)_
-- **Android**: press `a` to launch in the Android emulator
-- **Web**: press `w` to run in a browser
-
-You can also scan the QR code using the [Expo Go](https://expo.dev/go) app on your device. This project fully supports running in Expo Go for quick testing on physical devices.
-
-## Adding components
-
-You can add more reusable components using the CLI:
-
-```bash
-npx react-native-reusables/cli@latest add [...components]
-```
-
-> e.g. `npx react-native-reusables/cli@latest add input textarea`
-
-If you don't specify any component names, you'll be prompted to select which components to add interactively. Use the `--all` flag to install all available components at once.
-
-## Project Features
-
-- ⚛️ Built with [Expo Router](https://expo.dev/router)
-- 🎨 Styled with [Tailwind CSS](https://tailwindcss.com/) via [Nativewind](https://www.nativewind.dev/)
-- 📦 UI powered by [React Native Reusables](https://github.com/founded-labs/react-native-reusables)
-- 🚀 New Architecture enabled
-- 🔥 Edge to Edge enabled
-- 📱 Runs on iOS, Android, and Web
-
-## Learn More
-
-To dive deeper into the technologies used:
-
+ ## Principais Funcionalidades
 - [React Native Docs](https://reactnative.dev/docs/getting-started)
+    - Cadastro e gerenciamento de medicamentos
+    - Notificações de lembrete
+    - Controle de estoque
+    - Autenticação de usuários
+    - Integração com backend para persistência de dados
 - [Expo Docs](https://docs.expo.dev/)
+  
+## Tecnologias Utilizadas
 - [Nativewind Docs](https://www.nativewind.dev/)
+    - React Native (Expo)
+    - TypeScript
+    - NativeWind (Tailwind CSS para RN)
+    - React Context API
+    - React Query
+    - Jest (testes)
 - [React Native Reusables](https://reactnativereusables.com)
 
-## Deploy with EAS
+## Pré-requisitos
+- Node.js 18+
+- npm, yarn, pnpm ou bun
+- Expo CLI (`npm install -g expo-cli`)
+- Backend rodando (ver instruções em `medtrack-backend/README.md`)
+- MongoDB (se usar local, configure em `.env`)
 
-The easiest way to deploy your app is with [Expo Application Services (EAS)](https://expo.dev/eas).
+## Configuração
+1. Instale as dependências:
+```bash
+npm install
+# ou
+yarn
+```
+
+2. Configure o arquivo `.env`:
+```
+EXPO_PUBLIC_API_URL=http://<IP_BACKEND>:3000/api
+EXPO_PUBLIC_USE_MOCK_API=false
+```
+
+3. Inicie o servidor de desenvolvimento:
+```bash
+npm run dev
+# ou
+yarn dev
+```
+
+4. Abra o app:
+- Android: pressione `a`
+- iOS: pressione `i` (Mac)
+- Web: pressione `w`
+- Ou escaneie o QR code com o app Expo Go
+
+## Testes
+Execute os testes com:
+```bash
+npm test
+# ou
+
+## Integração com Backend
+
+Certifique-se de que o backend está rodando e que o endereço está correto no `.env`. Veja instruções detalhadas em `medtrack-backend/README.md`.
 
 - [EAS Build](https://docs.expo.dev/build/introduction/)
 - [EAS Updates](https://docs.expo.dev/eas-update/introduction/)
