@@ -22,13 +22,11 @@ class MedicationService extends ApiService {
   async getTodayMedications(): Promise<TodayMedication[]> {
     try {
       const timezoneOffset = getTimezoneOffset();
-      console.log('🌍 Enviando timezone para backend:', timezoneOffset);
 
       const response = await this.get<TodayMedication[]>(
         `/medications/today?timezone=${timezoneOffset}`
       );
 
-      console.log('📊 Medicamentos recebidos do backend:', response.data?.length || 0);
       return response.data || [];
     } catch (error) {
       throw error;
@@ -194,7 +192,6 @@ class MedicationService extends ApiService {
   async createMedication(medicationData: any): Promise<ApiResponse<any>> {
     try {
       const timezoneOffset = getTimezoneOffset();
-      console.log('🌍 Enviando timezone para createMedication:', timezoneOffset);
       const response = await this.post<any>(
         `/medications?timezone=${timezoneOffset}`,
         medicationData

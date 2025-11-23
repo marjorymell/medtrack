@@ -44,41 +44,20 @@ export default function NotificationSettingsScreen() {
 
   // Carregar configurações salvas
   useEffect(() => {
-    console.log(
-      '[NotificationSettings] useEffect executado - user?.id:',
-      user?.id,
-      'isAuthenticated:',
-      isAuthenticated,
-      'isMounted:',
-      isMounted
-    );
-
     if (isAuthenticated && user?.id && isMounted) {
-      console.log(
-        '[NotificationSettings] Usuário autenticado e componente montado, carregando configurações...'
-      );
       loadSettings();
-    } else {
-      console.log('[NotificationSettings] Aguardando autenticação ou montagem do componente...');
     }
   }, [isAuthenticated, user?.id, isMounted]); // Executa quando auth, user ou montagem mudar
 
   const loadSettings = async () => {
     try {
-      console.log('[NotificationSettings] === INICIANDO CARREGAMENTO DE CONFIGURAÇÕES ===');
-      console.log('[NotificationSettings] Fazendo chamada para API...');
-
       setIsLoading(true);
 
       // Buscar configurações do backend
       const userSettings = await notificationService.getNotificationSettings();
-      console.log('[NotificationSettings] Resposta da API recebida:', userSettings);
 
       // Verificar se o componente ainda está montado antes de atualizar o estado
       if (!isMounted) {
-        console.log(
-          '[NotificationSettings] Componente não está mais montado, cancelando atualização'
-        );
         return;
       }
 
@@ -90,19 +69,13 @@ export default function NotificationSettingsScreen() {
         quietHoursEnd: userSettings.quietHoursEnd || '08:00',
       };
 
-      console.log('[NotificationSettings] Aplicando novas configurações:', newSettings);
       setSettings(newSettings);
-
-      console.log('[NotificationSettings] Configurações aplicadas com sucesso');
     } catch (error) {
       console.error('[NotificationSettings] Erro ao carregar configurações:', error);
       console.error('[NotificationSettings] Detalhes do erro:', error);
 
       // Verificar se o componente ainda está montado antes de atualizar o estado
       if (!isMounted) {
-        console.log(
-          '[NotificationSettings] Componente não está mais montado, cancelando atualização de fallback'
-        );
         return;
       }
 
@@ -114,7 +87,6 @@ export default function NotificationSettingsScreen() {
         quietHoursStart: '22:00',
         quietHoursEnd: '08:00',
       };
-      console.log('[NotificationSettings] Aplicando configurações de fallback:', fallbackSettings);
       setSettings(fallbackSettings);
 
       Alert.alert('Erro', 'Não foi possível carregar as configurações. Usando valores padrão.');
@@ -138,8 +110,6 @@ export default function NotificationSettingsScreen() {
 
       // Salvar no backend
       await notificationService.updateNotificationSettings(newSettings);
-
-      console.log(`Configuração ${String(key)} atualizada:`, value);
     } catch (error) {
       console.error(`Erro ao atualizar ${String(key)}:`, error);
       Alert.alert('Erro', 'Não foi possível salvar a configuração. Tente novamente.');
@@ -171,7 +141,6 @@ export default function NotificationSettingsScreen() {
         // Obter token do dispositivo (agora que as permissões foram concedidas)
         const token = await getDeviceToken();
         if (token && user?.id) {
-          console.log('[NotificationSettings] Registrando token para usuário:', user.id);
           await registerToken(token, user.id);
         } else {
           console.warn('[NotificationSettings] Token ou user ID não disponível:', {

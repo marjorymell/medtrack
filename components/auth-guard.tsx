@@ -23,7 +23,6 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
   React.useEffect(() => {
     if (!isLoading && !isAuthenticated && isProtectedRoute) {
-      console.log('[AuthGuard] Usuário não autenticado, redirecionando para login');
       router.replace('/auth-screen?mode=login');
     }
   }, [isAuthenticated, isLoading, isProtectedRoute, router]);

@@ -9,8 +9,6 @@ import { Bell, CheckCircle, Clock, AlertCircle, TrendingUp } from 'lucide-react-
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 
-console.log('🔄 [HOME-INDEX] Módulo carregado - versão com postpone atualizado');
-
 const HomeTitleHeader = ({ onNotificationPress }: { onNotificationPress: () => void }) => {
   const colors = useThemeColors();
 
@@ -113,15 +111,10 @@ export default function HomeScreen() {
 
   const handlePostpone = async (scheduleId: string, currentScheduledTime: string) => {
     try {
-      console.log('[HANDLE-POSTPONE] scheduleId:', scheduleId);
-      console.log('[HANDLE-POSTPONE] currentScheduledTime:', currentScheduledTime);
-
       // Adiar baseado no horário agendado, não na hora atual
       const scheduledDate = new Date(currentScheduledTime);
-      console.log('[HANDLE-POSTPONE] scheduledDate:', scheduledDate.toISOString());
 
       const postponedDate = new Date(scheduledDate.getTime() + 30 * 60 * 1000); // +30 minutos
-      console.log('[HANDLE-POSTPONE] postponedDate (+30min):', postponedDate.toISOString());
 
       await postponeMedication(scheduleId, 30, postponedDate.toISOString());
       showToast('Medicamento adiado por 30 minutos', 'success');

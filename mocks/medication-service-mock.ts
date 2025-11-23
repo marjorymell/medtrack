@@ -30,8 +30,6 @@ class MedicationServiceMock {
    * Simula: GET /v1/medications/today
    */
   async getTodayMedications(): Promise<TodayMedication[]> {
-    console.log('[MOCK API] Buscando medicamentos de hoje...');
-    
     // Simula latência de rede
     await simulateNetworkDelay();
 
@@ -40,7 +38,6 @@ class MedicationServiceMock {
       a.time.localeCompare(b.time)
     );
 
-    console.log('[MOCK API] ✓ Retornando', sorted.length, 'medicamentos');
     return sorted;
   }
 
@@ -49,14 +46,11 @@ class MedicationServiceMock {
    * Simula: POST /v1/history
    */
   async confirmMedication(scheduleId: string): Promise<ApiResponse<void>> {
-    console.log('[MOCK API] Confirmando medicamento:', scheduleId);
-    
     await simulateNetworkDelay(300);
 
     const medication = this.medications.find((m) => m.scheduleId === scheduleId);
     
     if (!medication) {
-      console.error('[MOCK API] ✗ Medicamento não encontrado');
       return {
         success: false,
         error: {
@@ -87,10 +81,8 @@ class MedicationServiceMock {
     );
     if (stockItem && stockItem.currentStock > 0) {
       stockItem.currentStock--;
-      console.log('[MOCK API] Estoque decrementado:', stockItem.name, 'restam', stockItem.currentStock);
     }
 
-    console.log('[MOCK API] ✓ Medicamento confirmado com sucesso');
     return {
       success: true,
       message: 'Medicamento confirmado com sucesso',
@@ -105,14 +97,11 @@ class MedicationServiceMock {
     scheduleId: string, 
     postponeMinutes: number = 30
   ): Promise<ApiResponse<void>> {
-    console.log('[MOCK API] Adiando medicamento:', scheduleId, 'por', postponeMinutes, 'minutos');
-    
     await simulateNetworkDelay(300);
 
     const medication = this.medications.find((m) => m.scheduleId === scheduleId);
     
     if (!medication) {
-      console.error('[MOCK API] ✗ Medicamento não encontrado');
       return {
         success: false,
         error: {
@@ -145,7 +134,6 @@ class MedicationServiceMock {
       postponedTo: postponedTo.toISOString(),
     });
 
-    console.log('[MOCK API] ✓ Medicamento adiado para', medication.time);
     return {
       success: true,
       message: `Medicamento adiado para ${medication.time}`,
@@ -160,8 +148,6 @@ class MedicationServiceMock {
     startDate?: string,
     endDate?: string
   ): Promise<MedicationHistory[]> {
-    console.log('[MOCK API] Buscando histórico de medicamentos');
-    
     await simulateNetworkDelay();
 
     let filteredHistory = [...this.history];
@@ -183,7 +169,6 @@ class MedicationServiceMock {
       (a, b) => new Date(b.scheduledTime).getTime() - new Date(a.scheduledTime).getTime()
     );
 
-    console.log('[MOCK API] ✓ Retornando', filteredHistory.length, 'registros');
     return filteredHistory;
   }
 
@@ -192,11 +177,8 @@ class MedicationServiceMock {
    * Simula: GET /v1/medications/stock
    */
   async getMedicationStock(): Promise<MedicationStock[]> {
-    console.log('[MOCK API] Buscando estoque de medicamentos');
-    
     await simulateNetworkDelay();
 
-    console.log('[MOCK API] ✓ Retornando', this.stock.length, 'itens em estoque');
     return [...this.stock];
   }
 
@@ -205,8 +187,6 @@ class MedicationServiceMock {
    * Simula: GET /v1/history/adherence
    */
   async getAdherenceRate(days: number = 7): Promise<number> {
-    console.log('[MOCK API] Calculando taxa de adesão dos últimos', days, 'dias');
-    
     await simulateNetworkDelay();
 
     const confirmedCount = this.history.filter(
@@ -219,7 +199,6 @@ class MedicationServiceMock {
       ? (confirmedCount / totalCount) * 100 
       : 0;
 
-    console.log('[MOCK API] ✓ Taxa de adesão:', adherenceRate.toFixed(1) + '%');
     return Math.round(adherenceRate * 10) / 10; // Arredonda para 1 casa decimal
   }
 
@@ -228,11 +207,9 @@ class MedicationServiceMock {
    * Útil para testes
    */
   resetMockData(): void {
-    console.log('[MOCK API] Resetando dados mockados...');
     this.medications = [...MOCK_TODAY_MEDICATIONS];
     this.history = [...MOCK_MEDICATION_HISTORY];
     this.stock = [...MOCK_MEDICATION_STOCK];
-    console.log('[MOCK API] ✓ Dados resetados');
   }
 }
 

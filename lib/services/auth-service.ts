@@ -17,8 +17,6 @@ class AuthService {
    */
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     try {
-      console.log('[AuthService] Login request:', { email: credentials.email });
-
       const response = await fetch(`${API_URL}/users/login`, {
         method: 'POST',
         headers: {
@@ -27,14 +25,11 @@ class AuthService {
         body: JSON.stringify(credentials),
       });
 
-      console.log('[AuthService] Login response status:', response.status);
-
       if (!response.ok) {
         let errorMessage = 'Erro ao fazer login';
 
         try {
           const errorData = await response.json();
-          console.log('[AuthService] Error data:', errorData);
 
           // Nova estrutura: { success: false, error: { code, message } }
           if (errorData.error?.message) {
@@ -62,8 +57,6 @@ class AuthService {
       }
 
       const data: AuthResponse = await response.json();
-      console.log('[AuthService] Login successful');
-      console.log('[AuthService] Response data:', JSON.stringify(data, null, 2));
 
       await this.saveAuthData(data.data.token, data.data.user);
 
@@ -79,11 +72,6 @@ class AuthService {
    */
   async register(userData: RegisterRequest): Promise<AuthResponse> {
     try {
-      console.log('[AuthService] Register request:', {
-        email: userData.email,
-        name: userData.name,
-      });
-
       const response = await fetch(`${API_URL}/users/register`, {
         method: 'POST',
         headers: {
@@ -92,14 +80,11 @@ class AuthService {
         body: JSON.stringify(userData),
       });
 
-      console.log('[AuthService] Register response status:', response.status);
-
       if (!response.ok) {
         let errorMessage = 'Erro ao criar conta';
 
         try {
           const errorData = await response.json();
-          console.log('[AuthService] Error data:', errorData);
 
           // Nova estrutura: { success: false, error: { code, message } }
           if (errorData.error?.message) {
@@ -122,8 +107,6 @@ class AuthService {
       }
 
       const data: AuthResponse = await response.json();
-      console.log('[AuthService] Register successful');
-      console.log('[AuthService] Response data:', JSON.stringify(data, null, 2));
 
       await this.saveAuthData(data.data.token, data.data.user);
 

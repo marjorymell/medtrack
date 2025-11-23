@@ -19,10 +19,6 @@ export function MedicationCard({ medication, onConfirm, onPostpone }: Medication
     hour12: false,
   });
 
-  console.log('[MEDICATION-CARD]', medication.name, 'scheduledTime:', medication.scheduledTime);
-  console.log('[MEDICATION-CARD]', medication.name, 'displayTime:', displayTime);
-  console.log('[MEDICATION-CARD]', medication.name, 'status:', medication.status);
-
   const isTaken = medication.status === 'confirmed';
 
   const getStatusIcon = () => {

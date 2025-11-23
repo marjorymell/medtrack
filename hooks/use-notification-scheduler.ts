@@ -71,10 +71,6 @@ export function useNotificationScheduler() {
         // Adicionar à lista
         setScheduledNotifications((prev) => [...prev, scheduledNotification]);
 
-        console.log(
-          `[useNotificationScheduler] Notificação agendada: ${notificationId} para ${scheduledTime}`
-        );
-
         // Tentar agendar também no backend (se disponível)
         try {
           const backendRequest: ScheduleNotificationRequest = {

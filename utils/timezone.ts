@@ -29,7 +29,6 @@ export function getTimezoneOffset(): number {
       // MÉTODO SIMPLES: Usar Date.getTimezoneOffset() que funciona
       // mesmo com timezone do Expo detectado
       const offset = -new Date().getTimezoneOffset();
-      console.log('✅ Timezone detectado (Expo):', calendar.timeZone, '→ Offset:', offset);
       return offset;
     }
   } catch (error) {
@@ -39,7 +38,6 @@ export function getTimezoneOffset(): number {
   // Fallback para API nativa do JavaScript
   // ATENÇÃO: JavaScript inverte o sinal (positivo para oeste)
   const offset = -new Date().getTimezoneOffset();
-  console.log('✅ Timezone detectado (JavaScript) → Offset:', offset);
   return offset;
 }
 

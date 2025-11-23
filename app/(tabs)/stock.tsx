@@ -35,17 +35,9 @@ export default function StockScreen() {
   const { medications, loading, deleteMedication, updateStock, refetch } = useMedications();
   const router = useRouter();
 
-  console.log('[StockScreen] Render - medications:', medications?.length || 0, 'itens');
-
   // Monitorar mudanças nos medications
   useEffect(() => {
-    console.log(
-      '[StockScreen] useEffect - medications changed:',
-      medications?.length || 0,
-      'itens'
-    );
     if (medications && medications.length > 0) {
-      console.log('[StockScreen] Primeiro medicamento:', medications[0]);
     }
   }, [medications]);
 
@@ -84,9 +76,6 @@ export default function StockScreen() {
   };
 
   const handleDeleteMedication = (medication: Medication) => {
-    console.log(
-      `[StockScreen] Iniciando delete do medicamento: ${medication.id} - ${medication.name}`
-    );
     Alert.alert(
       'Remover Medicamento',
       `Tem certeza que deseja remover "${medication.name}"? Esta ação não pode ser desfeita.`,
@@ -96,7 +85,6 @@ export default function StockScreen() {
           text: 'Remover',
           style: 'destructive',
           onPress: () => {
-            console.log(`[StockScreen] Usuário confirmou delete, chamando deleteMedication`);
             deleteMedication(medication.id);
           },
         },
