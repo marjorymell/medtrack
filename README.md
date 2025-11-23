@@ -3,6 +3,8 @@
 # MedTrack (Frontend)
 Aplicativo mobile para controle de medicamentos, desenvolvido com React Native e Expo.
 
+[Link do Repositório Backend](https://github.com/DiegoOtani/medtrack-backend/)
+
  ## Principais Funcionalidades
 - [React Native Docs](https://reactnative.dev/docs/getting-started)
     - Cadastro e gerenciamento de medicamentos
@@ -60,16 +62,17 @@ yarn dev
 Execute os testes com:
 ```bash
 npm test
-# ou
+```
 
 ## Integração com Backend
 
 Certifique-se de que o backend está rodando e que o endereço está correto no `.env`. Veja instruções detalhadas em `medtrack-backend/README.md`.
 
+[Link do Repositório Backend](https://github.com/DiegoOtani/medtrack-backend/)
+
+---
+
 - [EAS Build](https://docs.expo.dev/build/introduction/)
 - [EAS Updates](https://docs.expo.dev/eas-update/introduction/)
 - [EAS Submit](https://docs.expo.dev/submit/introduction/)
 
----
-
-If you enjoy using React Native Reusables, please consider giving it a ⭐ on [GitHub](https://github.com/founded-labs/react-native-reusables). Your support means a lot!
