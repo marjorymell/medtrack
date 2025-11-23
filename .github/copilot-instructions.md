@@ -1768,7 +1768,8 @@ router.back();
 
 **Última atualização**: 23/11/2025  
 **Versão**: 8.0 - Sistema de postpone implementado + Testes atualizados (169 testes totais, 4 falhas backend)  
-**Status do Projeto**: 
+**Status do Projeto**:
+
 - **Backend**: 56/60 testes passando (93%) - 4 falhas em user.test.ts e medication.test.ts
 - **Frontend**: 76 testes implementados (6 suites) - use-notification-permissions.test.tsx deletado por corrupção
 - **Features Principais**: Home ✅, Histórico ✅, Estoque ✅, Perfil ✅, Add/Edit Medication ✅, Postpone ✅
@@ -1776,6 +1777,7 @@ router.back();
 - **Documentação**: 42 arquivos em /docs, Swagger 100% completo (37/37 rotas)
 
 **Mudanças Recentes (v8.0):**
+
 - ✅ Sistema de adiamento (postpone) completamente refatorado
 - ✅ Calcula novo horário baseado em scheduledTime + 30min (não current time)
 - ✅ Backend atualiza ScheduledNotification.scheduledTime corretamente
