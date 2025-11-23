@@ -26,24 +26,6 @@ export default function ProfileScreen() {
       icon: Bell,
       onPress: () => router.push('/notification-settings'),
     },
-    {
-      id: 'export',
-      title: 'Exportar histórico',
-      icon: Download,
-      onPress: () => {
-        Alert.alert(
-          'Exportar Histórico',
-          'Esta funcionalidade será implementada em breve. Você poderá exportar seu histórico de medicações em formato PDF ou CSV.',
-          [{ text: 'OK' }]
-        );
-      },
-    },
-    {
-      id: 'test-reminder',
-      title: 'Testar Lembrete (Preview)',
-      icon: Bell,
-      onPress: () => router.push('/reminder-notification' as any),
-    },
   ];
 
   // Get user initials for avatar

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
 import { Subscription } from 'expo-notifications';
 import { NotificationData } from '@/types/notification';
+import { router } from 'expo-router';
 
 /**
  * Hook para gerenciar notificações recebidas e interações do usuário
@@ -16,13 +17,34 @@ export function useNotificationHandler(
   useEffect(() => {
     // Configurar como as notificações são exibidas quando o app está em foreground
     Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: false,
-        shouldShowBanner: true,
-        shouldShowList: true,
-      }),
+      handleNotification: async (notification) => {
+        const trigger = notification.request.trigger as any;
+
+        // Se for uma notificação agendada (type: "date"), verificar se o horário já passou
+        if (trigger && trigger.type === 'date' && trigger.value) {
+          const scheduledTime = trigger.value; // timestamp em ms
+          const now = Date.now();
+
+          // Se a notificação ainda não chegou no horário agendado, NÃO mostrar
+          if (scheduledTime > now) {
+            return {
+              shouldShowAlert: false,
+              shouldPlaySound: false,
+              shouldSetBadge: false,
+              shouldShowBanner: false,
+              shouldShowList: false,
+            };
+          }
+        }
+
+        // Notificação deve ser exibida (horário chegou ou é push notification)
+        return {
+          shouldPlaySound: true,
+          shouldSetBadge: false,
+          shouldShowBanner: true, // ✅ Substitui shouldShowAlert
+          shouldShowList: true,
+        };
+      },
     });
 
     // Listener para notificações recebidas
@@ -68,22 +90,21 @@ export function useNotificationHandler(
 
     switch (actionIdentifier) {
       case Notifications.DEFAULT_ACTION_IDENTIFIER:
-        // Usuário tocou na notificação (ação padrão)// Aqui você pode navegar para a tela de confirmação de dose
+        // Navegar para a tela Home
+        router.push('/(tabs)');
         break;
 
       case 'TAKE_DOSE':
         // Usuário confirmou que tomou a dose
-
-        // Aqui você pode registrar a dose tomada
+        router.push('/(tabs)');
         break;
 
       case 'SNOOZE':
         // Usuário adiou o lembrete
-
-        // Aqui você pode reagendar a notificação
         break;
 
       default:
+        console.log('[NotificationHandler] Ação desconhecida:', actionIdentifier);
     }
   };
 
