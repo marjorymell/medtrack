@@ -1,20 +1,20 @@
-import { 
-  TodayMedication, 
+import {
+  TodayMedication,
   ApiResponse,
   MedicationHistory,
-  MedicationStock 
+  MedicationStock,
 } from '@/types/medication';
-import { 
-  MOCK_TODAY_MEDICATIONS, 
+import {
+  MOCK_TODAY_MEDICATIONS,
   MOCK_MEDICATION_HISTORY,
-  MOCK_MEDICATION_STOCK 
+  MOCK_MEDICATION_STOCK,
 } from './medication-data';
 import { simulateNetworkDelay, generateMockId } from './utils';
 
 /**
  * Serviço Mock que simula a API do backend
  * Use este serviço durante o desenvolvimento até que a API real esteja pronta
- * 
+ *
  * Para alternar entre mock e API real:
  * 1. Crie o arquivo lib/services/medication-service.ts com a implementação real
  * 2. No hook use-today-medications.ts, importe o serviço desejado
@@ -34,9 +34,7 @@ class MedicationServiceMock {
     await simulateNetworkDelay();
 
     // Ordena por horário
-    const sorted = [...this.medications].sort((a, b) => 
-      a.time.localeCompare(b.time)
-    );
+    const sorted = [...this.medications].sort((a, b) => a.time.localeCompare(b.time));
 
     return sorted;
   }
@@ -49,7 +47,7 @@ class MedicationServiceMock {
     await simulateNetworkDelay(300);
 
     const medication = this.medications.find((m) => m.scheduleId === scheduleId);
-    
+
     if (!medication) {
       return {
         success: false,
@@ -94,13 +92,13 @@ class MedicationServiceMock {
    * Simula: POST /v1/history (com status postponed)
    */
   async postponeMedication(
-    scheduleId: string, 
+    scheduleId: string,
     postponeMinutes: number = 30
   ): Promise<ApiResponse<void>> {
     await simulateNetworkDelay(300);
 
     const medication = this.medications.find((m) => m.scheduleId === scheduleId);
-    
+
     if (!medication) {
       return {
         success: false,
@@ -144,10 +142,7 @@ class MedicationServiceMock {
    * Busca o histórico de medicamentos
    * Simula: GET /v1/history
    */
-  async getMedicationHistory(
-    startDate?: string,
-    endDate?: string
-  ): Promise<MedicationHistory[]> {
+  async getMedicationHistory(startDate?: string, endDate?: string): Promise<MedicationHistory[]> {
     await simulateNetworkDelay();
 
     let filteredHistory = [...this.history];
@@ -189,15 +184,11 @@ class MedicationServiceMock {
   async getAdherenceRate(days: number = 7): Promise<number> {
     await simulateNetworkDelay();
 
-    const confirmedCount = this.history.filter(
-      (h) => h.status === 'confirmed'
-    ).length;
+    const confirmedCount = this.history.filter((h) => h.status === 'confirmed').length;
 
     const totalCount = this.history.length;
 
-    const adherenceRate = totalCount > 0 
-      ? (confirmedCount / totalCount) * 100 
-      : 0;
+    const adherenceRate = totalCount > 0 ? (confirmedCount / totalCount) * 100 : 0;
 
     return Math.round(adherenceRate * 10) / 10; // Arredonda para 1 casa decimal
   }
