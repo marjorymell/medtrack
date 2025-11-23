@@ -8,9 +8,19 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Modal,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { X, Clock, Calendar, Package, FileText, AlertCircle } from 'lucide-react-native';
+import {
+  X,
+  Clock,
+  Calendar,
+  Package,
+  FileText,
+  AlertCircle,
+  ChevronDown,
+} from 'lucide-react-native';
 import { useThemeColors } from '@/hooks/use-theme-colors';
 import { useMedications } from '@/hooks/use-medications';
 import { Medication, UpdateMedicationData } from '@/types/medication';
@@ -70,9 +80,19 @@ export default function EditMedicationScreen() {
   const [dosage, setDosage] = useState<string>('');
   const [selectedFrequency, setSelectedFrequency] = useState<string>('Diária');
   const [expiryDate, setExpiryDate] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [stock, setStock] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
   const [startTime, setStartTime] = useState<string>('08:00');
+  const [selectedTime, setSelectedTime] = useState<Date>(() => {
+    const now = new Date();
+    now.setHours(8, 0, 0, 0);
+    return now;
+  });
+  const [showTimePicker, setShowTimePicker] = useState<boolean>(false);
+  const [showFrequencyPicker, setShowFrequencyPicker] = useState<boolean>(false);
+  const [showStockPicker, setShowStockPicker] = useState<boolean>(false);
 
   // Validation state
   const [formErrors, setFormErrors] = useState<
@@ -89,9 +109,16 @@ export default function EditMedicationScreen() {
       setNotes(medication.notes || '');
       setStartTime(medication.startTime || '08:00');
 
+      // Configurar selectedTime baseado no startTime (usar hora local para DateTimePicker)
+      const [hours, minutes] = (medication.startTime || '08:00').split(':');
+      const timeDate = new Date();
+      timeDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      setSelectedTime(timeDate);
+
       // Converter data para formato DD/MM/AAAA
       if (medication.expiresAt) {
         const date = new Date(medication.expiresAt);
+        setSelectedDate(date);
         const day = date.getDate().toString().padStart(2, '0');
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const year = date.getFullYear();
@@ -148,23 +175,37 @@ export default function EditMedicationScreen() {
     }
   };
 
-  const isValidDate = (dateStr: string): boolean => {
-    const regex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-    const match = dateStr.match(regex);
-    if (!match) return false;
-
-    const [, day, month, year] = match;
-    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    return (
-      date.getDate() === parseInt(day) &&
-      date.getMonth() === parseInt(month) - 1 &&
-      date.getFullYear() === parseInt(year)
-    );
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setSelectedDate(selectedDate);
+      const formattedDate = formatDate(selectedDate);
+      setExpiryDate(formattedDate);
+      if (formErrors.expiryDate) setFormErrors({ ...formErrors, expiryDate: undefined });
+    }
   };
 
-  const isValidTime = (timeStr: string): boolean => {
-    const regex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-    return regex.test(timeStr);
+  const handleTimeChange = (event: any, selectedTime?: Date) => {
+    setShowTimePicker(false);
+    if (selectedTime) {
+      setSelectedTime(selectedTime);
+      const formattedTime = formatTime(selectedTime);
+      setStartTime(formattedTime);
+    }
+  };
+
+  const formatTime = (date: Date): string => {
+    // Usar hora local porque DateTimePicker trabalha com hora local
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
+  const formatDate = (date: Date): string => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   };
 
   const handleClose = (): void => {
@@ -260,37 +301,6 @@ export default function EditMedicationScreen() {
     return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
   };
 
-  const FormField = ({
-    label,
-    required = false,
-    error,
-    children,
-    icon: Icon,
-  }: {
-    label: string;
-    required?: boolean;
-    error?: string;
-    children: React.ReactNode;
-    icon?: any;
-  }) => (
-    <View className="mb-4">
-      <View className="mb-2 flex-row items-center">
-        {Icon && <Icon size={16} color={colors.textSecondary} className="mr-2" />}
-        <Text className="text-sm font-medium text-foreground dark:text-foreground-dark">
-          {label}
-          {required && <Text className="text-red-500"> *</Text>}
-        </Text>
-      </View>
-      {children}
-      {error && (
-        <View className="mt-1 flex-row items-center">
-          <AlertCircle size={14} color="#ef4444" />
-          <Text className="ml-1 text-sm text-red-500">{error}</Text>
-        </View>
-      )}
-    </View>
-  );
-
   if (!medication) {
     return (
       <View className="flex-1 items-center justify-center bg-background dark:bg-background-dark">
@@ -302,26 +312,29 @@ export default function EditMedicationScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1">
-      <ScrollView
-        className="flex-1 bg-background dark:bg-background-dark"
-        contentContainerStyle={{ paddingBottom: 100 }}>
-        {/* Header */}
-        <View className="flex-row items-center bg-background px-4 pb-6 pt-12 dark:bg-background-dark">
-          <TouchableOpacity onPress={handleClose} className="p-2">
-            <X size={24} color={colors.textPrimary} strokeWidth={2} />
-          </TouchableOpacity>
-          <View className="flex-1">
-            <Text className="text-center text-lg font-semibold text-foreground dark:text-foreground-dark">
-              Editar Medicamento
-            </Text>
-          </View>
-          <View style={{ width: 40 }} />
-        </View>
+      className="flex-1 bg-background dark:bg-background-dark">
+      {/* Header */}
+      <View className="flex-row items-center justify-between bg-background px-4 pb-6 pt-12 dark:bg-background-dark">
+        <TouchableOpacity onPress={handleClose} className="p-2">
+          <X size={24} color={colors.textPrimary} strokeWidth={2} />
+        </TouchableOpacity>
+        <Text className="text-lg font-bold text-foreground dark:text-foreground-dark">
+          Editar Medicamento
+        </Text>
+        <View style={{ width: 40 }} />
+      </View>
 
-        {/* Form */}
-        <View className="gap-1 px-4 pb-6">
-          <FormField label="Nome do Medicamento" required error={formErrors.name}>
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}>
+        {/* Form Fields */}
+        <View className="px-4">
+          {/* Nome do Medicamento */}
+          <View className="mb-4">
+            <Text className="mb-2 text-base font-medium text-foreground dark:text-foreground-dark">
+              Nome do Medicamento
+            </Text>
             <TextInput
               value={name}
               onChangeText={(text) => {
@@ -334,9 +347,19 @@ export default function EditMedicationScreen() {
               autoCapitalize="words"
               autoCorrect={false}
             />
-          </FormField>
+            {formErrors.name && (
+              <View className="mt-1 flex-row items-center">
+                <AlertCircle size={14} color="#ef4444" />
+                <Text className="ml-1 text-sm text-red-500">{formErrors.name}</Text>
+              </View>
+            )}
+          </View>
 
-          <FormField label="Dosagem" required error={formErrors.dosage} icon={Package}>
+          {/* Dosagem */}
+          <View className="mb-4">
+            <Text className="mb-2 text-base font-medium text-foreground dark:text-foreground-dark">
+              Dosagem (ex: 500mg)
+            </Text>
             <TextInput
               value={dosage}
               onChangeText={(text) => {
@@ -349,91 +372,252 @@ export default function EditMedicationScreen() {
               autoCapitalize="none"
               autoCorrect={false}
             />
-          </FormField>
+            {formErrors.dosage && (
+              <View className="mt-1 flex-row items-center">
+                <AlertCircle size={14} color="#ef4444" />
+                <Text className="ml-1 text-sm text-red-500">{formErrors.dosage}</Text>
+              </View>
+            )}
+          </View>
 
-          <FormField label="Frequência" required error={formErrors.frequency}>
-            <View className="gap-2">
-              {FREQUENCY_OPTIONS.map((option) => (
-                <TouchableOpacity
-                  key={option.value}
-                  onPress={() => setSelectedFrequency(option.value)}
-                  className={`rounded-lg border p-3 ${
-                    selectedFrequency === option.value
-                      ? 'border-primary bg-primary/10 dark:border-primary-dark dark:bg-primary-dark/10'
-                      : 'border-border bg-secondary dark:border-border-dark dark:bg-secondary-dark'
-                  }`}>
-                  <Text
-                    className={`text-base font-medium ${
-                      selectedFrequency === option.value
-                        ? 'text-primary dark:text-primary-dark'
-                        : 'text-foreground dark:text-foreground-dark'
-                    }`}>
-                    {option.label}
-                  </Text>
-                  <Text className="text-sm text-muted-foreground dark:text-muted-foreground-dark">
-                    {option.description}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </FormField>
+          {/* Frequência */}
+          <View className="mb-4">
+            <Text className="mb-3 text-base font-medium text-foreground dark:text-foreground-dark">
+              Frequência
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowFrequencyPicker(true)}
+              className="h-12 flex-row items-center justify-between rounded-lg bg-secondary px-4 dark:bg-secondary-dark">
+              <Text className="text-base text-foreground dark:text-foreground-dark">
+                {selectedFrequency}
+              </Text>
+              <ChevronDown size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
 
-          <FormField label="Horário de Início" required error={formErrors.startTime} icon={Clock}>
-            <TextInput
-              value={startTime}
-              onChangeText={(text) => {
-                setStartTime(text);
-                if (formErrors.startTime) setFormErrors({ ...formErrors, startTime: undefined });
-              }}
-              placeholder="08:00"
-              placeholderTextColor={colors.textSecondary}
-              className="h-12 rounded-lg bg-secondary px-4 text-base text-foreground dark:bg-secondary-dark dark:text-foreground-dark"
-              keyboardType="numeric"
-            />
-          </FormField>
+            {/* Modal do Picker Customizado */}
+            <Modal
+              visible={showFrequencyPicker}
+              transparent={true}
+              animationType="fade"
+              onRequestClose={() => setShowFrequencyPicker(false)}>
+              <TouchableOpacity
+                className="flex-1 justify-end bg-black/50"
+                activeOpacity={1}
+                onPress={() => setShowFrequencyPicker(false)}>
+                <View className="rounded-t-2xl bg-background p-6 dark:bg-background-dark">
+                  <View className="mb-4 flex-row items-center justify-between">
+                    <Text className="text-lg font-semibold text-foreground dark:text-foreground-dark">
+                      Selecione a frequência
+                    </Text>
+                    <TouchableOpacity onPress={() => setShowFrequencyPicker(false)} className="p-2">
+                      <X size={24} color={colors.textPrimary} />
+                    </TouchableOpacity>
+                  </View>
 
-          <FormField label="Data de Validade" error={formErrors.expiryDate} icon={Calendar}>
-            <TextInput
-              value={expiryDate}
-              onChangeText={(text) => {
-                setExpiryDate(text);
-                if (formErrors.expiryDate) setFormErrors({ ...formErrors, expiryDate: undefined });
-              }}
-              placeholder="DD/MM/AAAA"
-              placeholderTextColor={colors.textSecondary}
-              className="h-12 rounded-lg bg-secondary px-4 text-base text-foreground dark:bg-secondary-dark dark:text-foreground-dark"
-              keyboardType="numeric"
-              maxLength={10}
-            />
-          </FormField>
+                  <View className="space-y-2">
+                    {FREQUENCY_OPTIONS.map((option) => (
+                      <TouchableOpacity
+                        key={option.value}
+                        onPress={() => {
+                          setSelectedFrequency(option.value);
+                          setShowFrequencyPicker(false);
+                          if (formErrors.frequency)
+                            setFormErrors({ ...formErrors, frequency: undefined });
+                        }}
+                        className={`rounded-lg p-4 ${
+                          selectedFrequency === option.value
+                            ? 'bg-primary dark:bg-primary-dark'
+                            : 'bg-secondary dark:bg-secondary-dark'
+                        }`}>
+                        <Text
+                          className={`text-base font-medium ${
+                            selectedFrequency === option.value
+                              ? 'text-primary-foreground dark:text-primary-foreground-dark'
+                              : 'text-foreground dark:text-foreground-dark'
+                          }`}>
+                          {option.label}
+                        </Text>
+                        <Text
+                          className={`mt-1 text-sm ${
+                            selectedFrequency === option.value
+                              ? 'text-primary-foreground/80 dark:text-primary-foreground-dark/80'
+                              : 'text-muted-foreground dark:text-muted-foreground-dark'
+                          }`}>
+                          {option.description}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </Modal>
 
-          <FormField label="Quantidade em Estoque" required error={formErrors.stock} icon={Package}>
-            <TextInput
-              value={stock}
-              onChangeText={(text) => {
-                setStock(text);
-                if (formErrors.stock) setFormErrors({ ...formErrors, stock: undefined });
-              }}
-              placeholder="Ex: 30"
-              placeholderTextColor={colors.textSecondary}
-              className="h-12 rounded-lg bg-secondary px-4 text-base text-foreground dark:bg-secondary-dark dark:text-foreground-dark"
-              keyboardType="numeric"
-            />
-          </FormField>
+            {formErrors.frequency && (
+              <View className="mt-1 flex-row items-center">
+                <AlertCircle size={14} color="#ef4444" />
+                <Text className="ml-1 text-sm text-red-500">{formErrors.frequency}</Text>
+              </View>
+            )}
+          </View>
 
-          <FormField label="Observações" icon={FileText}>
+          {/* Horário de Início */}
+          <View className="mb-4">
+            <Text className="mb-2 text-base font-medium text-foreground dark:text-foreground-dark">
+              Horário de Início
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowTimePicker(true)}
+              className="h-12 flex-row items-center justify-between rounded-lg bg-secondary px-4 dark:bg-secondary-dark">
+              <Text className="text-base text-foreground dark:text-foreground-dark">
+                {startTime}
+              </Text>
+              <Clock size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+
+            {showTimePicker && (
+              <DateTimePicker
+                value={selectedTime}
+                mode="time"
+                display="default"
+                onChange={handleTimeChange}
+                textColor={colors.textPrimary}
+              />
+            )}
+
+            {formErrors.startTime && (
+              <View className="mt-1 flex-row items-center">
+                <AlertCircle size={14} color="#ef4444" />
+                <Text className="ml-1 text-sm text-red-500">{formErrors.startTime}</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Validade */}
+          <View className="mb-4">
+            <Text className="mb-2 text-base font-medium text-foreground dark:text-foreground-dark">
+              Validade
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowDatePicker(true)}
+              className="h-12 flex-row items-center justify-between rounded-lg bg-secondary px-4 dark:bg-secondary-dark">
+              <Text
+                className={`text-base ${expiryDate ? 'text-foreground dark:text-foreground-dark' : 'text-muted-foreground dark:text-muted-foreground-dark'}`}>
+                {expiryDate || 'Selecionar data'}
+              </Text>
+              <Calendar size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+
+            {showDatePicker && (
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display="default"
+                onChange={handleDateChange}
+                minimumDate={new Date()}
+                textColor={colors.textPrimary}
+              />
+            )}
+
+            {formErrors.expiryDate && (
+              <View className="mt-1 flex-row items-center">
+                <AlertCircle size={14} color="#ef4444" />
+                <Text className="ml-1 text-sm text-red-500">{formErrors.expiryDate}</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Quantidade em Estoque */}
+          <View className="mb-4">
+            <Text className="mb-2 text-base font-medium text-foreground dark:text-foreground-dark">
+              Quantidade em Estoque
+            </Text>
+            <TouchableOpacity
+              onPress={() => setShowStockPicker(true)}
+              className="h-12 flex-row items-center justify-between rounded-lg bg-secondary px-4 dark:bg-secondary-dark">
+              <Text
+                className={`text-base ${stock ? 'text-foreground dark:text-foreground-dark' : 'text-muted-foreground dark:text-muted-foreground-dark'}`}>
+                {stock || 'Selecionar quantidade'}
+              </Text>
+              <Package size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+
+            {/* Modal do Picker de Estoque */}
+            <Modal
+              visible={showStockPicker}
+              transparent={true}
+              animationType="fade"
+              onRequestClose={() => setShowStockPicker(false)}>
+              <TouchableOpacity
+                className="flex-1 justify-end bg-black/50"
+                activeOpacity={1}
+                onPress={() => setShowStockPicker(false)}>
+                <View className="rounded-t-2xl bg-background p-6 dark:bg-background-dark">
+                  <View className="mb-4 flex-row items-center justify-between">
+                    <Text className="text-lg font-semibold text-foreground dark:text-foreground-dark">
+                      Selecione a quantidade
+                    </Text>
+                    <TouchableOpacity onPress={() => setShowStockPicker(false)} className="p-2">
+                      <X size={24} color={colors.textPrimary} />
+                    </TouchableOpacity>
+                  </View>
+
+                  <ScrollView showsVerticalScrollIndicator={false} className="max-h-80">
+                    <View className="flex-row flex-wrap">
+                      {Array.from({ length: 100 }, (_, i) => i + 1).map((number) => (
+                        <TouchableOpacity
+                          key={number}
+                          onPress={() => {
+                            setStock(number.toString());
+                            setShowStockPicker(false);
+                            if (formErrors.stock)
+                              setFormErrors({ ...formErrors, stock: undefined });
+                          }}
+                          className={`m-1 w-16 items-center justify-center rounded-lg p-3 ${
+                            stock === number.toString()
+                              ? 'bg-primary dark:bg-primary-dark'
+                              : 'bg-secondary dark:bg-secondary-dark'
+                          }`}>
+                          <Text
+                            className={`text-base font-medium ${
+                              stock === number.toString()
+                                ? 'text-primary-foreground dark:text-primary-foreground-dark'
+                                : 'text-foreground dark:text-foreground-dark'
+                            }`}>
+                            {number}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </ScrollView>
+                </View>
+              </TouchableOpacity>
+            </Modal>
+
+            {formErrors.stock && (
+              <View className="mt-1 flex-row items-center">
+                <AlertCircle size={14} color="#ef4444" />
+                <Text className="ml-1 text-sm text-red-500">{formErrors.stock}</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Observação */}
+          <View className="mb-6">
+            <Text className="mb-2 text-base font-medium text-foreground dark:text-foreground-dark">
+              Observação
+            </Text>
             <TextInput
               value={notes}
               onChangeText={setNotes}
               placeholder="Instruções especiais, efeitos colaterais, etc."
               placeholderTextColor={colors.textSecondary}
               multiline
-              numberOfLines={3}
+              numberOfLines={4}
               textAlignVertical="top"
-              className="min-h-20 rounded-lg bg-secondary px-4 py-3 text-base text-foreground dark:bg-secondary-dark dark:text-foreground-dark"
+              className="min-h-32 rounded-lg bg-secondary px-4 py-3 text-base text-foreground dark:bg-secondary-dark dark:text-foreground-dark"
               autoCapitalize="sentences"
             />
-          </FormField>
+          </View>
 
           {/* Error Message */}
           {error && (
@@ -441,13 +625,15 @@ export default function EditMedicationScreen() {
               <Text className="text-sm text-red-600 dark:text-red-400">{error}</Text>
             </View>
           )}
+        </View>
 
-          {/* Save Button */}
+        {/* Save Button */}
+        <View className="px-4 pb-6">
           <TouchableOpacity
             onPress={handleSave}
             disabled={loading}
-            className="mt-4 h-12 items-center justify-center rounded-lg bg-primary disabled:opacity-50 dark:bg-primary-dark">
-            <Text className="text-base font-semibold text-primary-foreground dark:text-primary-foreground-dark">
+            className="h-12 items-center justify-center rounded-lg bg-primary disabled:opacity-50 dark:bg-primary-dark">
+            <Text className="text-base font-bold text-primary-foreground dark:text-primary-foreground-dark">
               {loading ? 'Salvando...' : 'Salvar Alterações'}
             </Text>
           </TouchableOpacity>

@@ -6,14 +6,27 @@ import { useThemeColors } from '@/hooks/use-theme-colors';
 interface MedicationCardProps {
   medication: TodayMedication;
   onConfirm: (scheduleId: string) => void;
-  onPostpone: (scheduleId: string) => void;
+  onPostpone: (scheduleId: string, scheduledTime: string) => void;
 }
 
 export function MedicationCard({ medication, onConfirm, onPostpone }: MedicationCardProps) {
   const colors = useThemeColors();
 
+  // Usar scheduledTime (que já inclui adiamento se aplicável)
+  const displayTime = new Date(medication.scheduledTime).toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+
+  console.log('[MEDICATION-CARD]', medication.name, 'scheduledTime:', medication.scheduledTime);
+  console.log('[MEDICATION-CARD]', medication.name, 'displayTime:', displayTime);
+  console.log('[MEDICATION-CARD]', medication.name, 'status:', medication.status);
+
+  const isTaken = medication.status === 'confirmed';
+
   const getStatusIcon = () => {
-    if (medication.taken) {
+    if (isTaken) {
       return <CheckCircle size={20} color="#10b981" />;
     }
     if (medication.status === 'postponed') {
@@ -21,11 +34,9 @@ export function MedicationCard({ medication, onConfirm, onPostpone }: Medication
     }
     // Verificar se está atrasado
     const now = new Date();
-    const medTime = new Date();
-    const [hours, minutes] = medication.time.split(':');
-    medTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    const scheduledDateTime = new Date(medication.scheduledTime);
 
-    if (now > medTime) {
+    if (now > scheduledDateTime) {
       return <AlertCircle size={20} color="#ef4444" />;
     }
 
@@ -33,7 +44,7 @@ export function MedicationCard({ medication, onConfirm, onPostpone }: Medication
   };
 
   const getStatusText = () => {
-    if (medication.taken) {
+    if (isTaken) {
       return { text: 'Tomado', color: '#10b981' };
     }
     if (medication.status === 'postponed') {
@@ -50,7 +61,7 @@ export function MedicationCard({ medication, onConfirm, onPostpone }: Medication
       <View className="mb-3 flex-row items-center justify-between">
         <View className="flex-row items-center gap-2">
           <Text className="text-lg font-bold text-foreground dark:text-foreground-dark">
-            {medication.time}
+            {displayTime}
           </Text>
           {getStatusIcon()}
         </View>
@@ -76,7 +87,7 @@ export function MedicationCard({ medication, onConfirm, onPostpone }: Medication
       </View>
 
       {/* Botões de ação */}
-      {!medication.taken && (
+      {!isTaken && (
         <View className="flex-row gap-3">
           <Pressable
             onPress={() => onConfirm(medication.scheduleId)}
@@ -89,7 +100,7 @@ export function MedicationCard({ medication, onConfirm, onPostpone }: Medication
           </Pressable>
 
           <Pressable
-            onPress={() => onPostpone(medication.scheduleId)}
+            onPress={() => onPostpone(medication.scheduleId, medication.scheduledTime)}
             className="h-12 flex-1 items-center justify-center rounded-lg bg-secondary dark:bg-secondary-dark"
             accessibilityLabel={`Adiar dose de ${medication.name}`}
             accessibilityRole="button">
@@ -101,7 +112,7 @@ export function MedicationCard({ medication, onConfirm, onPostpone }: Medication
       )}
 
       {/* Mensagem quando já tomado */}
-      {medication.taken && (
+      {isTaken && (
         <View className="rounded-lg bg-green-50 p-3 dark:bg-green-900/20">
           <Text className="text-center text-green-700 dark:text-green-300">
             ✓ Dose confirmada com sucesso!

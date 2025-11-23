@@ -180,15 +180,24 @@ class HistoryService extends ApiService {
    */
   async postponeMedication(
     scheduleId: string,
-    postponeMinutes: number = 30
+    postponeMinutes: number = 30,
+    customScheduledFor?: string
   ): Promise<ApiResponse<MedicationHistory>> {
-    const postponedTo = new Date();
-    postponedTo.setMinutes(postponedTo.getMinutes() + postponeMinutes);
+    let postponedTo: Date;
+
+    if (customScheduledFor) {
+      // Se fornecido, usar o horário customizado
+      postponedTo = new Date(customScheduledFor);
+    } else {
+      // Caso contrário, usar hora atual + postponeMinutes
+      postponedTo = new Date();
+      postponedTo.setMinutes(postponedTo.getMinutes() + postponeMinutes);
+    }
 
     return this.createHistory({
       scheduleId,
       action: HistoryAction.POSTPONED,
-      postponedTo: postponedTo.toISOString(),
+      scheduledFor: postponedTo.toISOString(), // Backend espera scheduledFor
       notes: `Adiado por ${postponeMinutes} minutos`,
     });
   }

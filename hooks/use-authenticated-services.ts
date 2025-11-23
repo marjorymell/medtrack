@@ -36,8 +36,20 @@ export function useAuthenticatedServices() {
 
   // Mutation para adiar medicamento
   const postponeMedicationMutation = useMutation({
-    mutationFn: async ({ scheduleId, minutes }: { scheduleId: string; minutes?: number }) => {
-      const result = await historyService.postponeMedication(scheduleId, minutes || 30);
+    mutationFn: async ({
+      scheduleId,
+      minutes,
+      scheduledFor,
+    }: {
+      scheduleId: string;
+      minutes?: number;
+      scheduledFor?: string;
+    }) => {
+      const result = await historyService.postponeMedication(
+        scheduleId,
+        minutes || 30,
+        scheduledFor
+      );
       if (!result.success) {
         throw new Error(result.error?.message || 'Erro ao adiar medicamento');
       }
@@ -112,8 +124,8 @@ export function useAuthenticatedServices() {
     medicationService: {
       getTodayMedications: () => medicationService.getTodayMedications(),
       confirmMedication: (scheduleId: string) => confirmMedicationMutation.mutateAsync(scheduleId),
-      postponeMedication: (scheduleId: string, minutes?: number) =>
-        postponeMedicationMutation.mutateAsync({ scheduleId, minutes }),
+      postponeMedication: (scheduleId: string, minutes?: number, scheduledFor?: string) =>
+        postponeMedicationMutation.mutateAsync({ scheduleId, minutes, scheduledFor }),
     },
     historyService: {
       getMyHistory: (startDate?: string, endDate?: string) =>

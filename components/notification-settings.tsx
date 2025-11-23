@@ -74,8 +74,8 @@ export function NotificationSettingsScreen() {
       // Salvar no backend usando o hook
       await updateSettings({
         ...newSettings,
-        quietHoursStart: newSettings.quietHoursStart || null,
-        quietHoursEnd: newSettings.quietHoursEnd || null,
+        quietHoursStart: newSettings.quietHoursStart || undefined,
+        quietHoursEnd: newSettings.quietHoursEnd || undefined,
       });
       Alert.alert('Sucesso', 'Configuração salva com sucesso.');
       // Reverter mudança em caso de erro

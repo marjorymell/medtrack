@@ -27,7 +27,7 @@ export function useNotificationSettings() {
   });
 
   // Mutation para atualizar configurações
-  const updateSettingsMutation = useMutation({
+  const updateSettingsMutation = useMutation<NotificationSettings, any, NotificationSettings>({
     mutationFn: async (newSettings: NotificationSettings) => {
       // Converter null para undefined para compatibilidade com a API
       const apiSettings = {
@@ -37,9 +37,9 @@ export function useNotificationSettings() {
       };
       return await notificationService.updateNotificationSettings(apiSettings);
     },
-    onSuccess: (_response: ApiResponse<NotificationSettings>, variables: NotificationSettings) => {
+    onSuccess: (data: NotificationSettings, variables: NotificationSettings) => {
       // Atualizar cache com novas configurações
-      queryClient.setQueryData(['notification-settings'], variables);
+      queryClient.setQueryData(['notification-settings'], data);
       showToast('Configurações atualizadas com sucesso', 'success');
     },
     onError: (err: any) => {

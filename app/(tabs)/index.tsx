@@ -9,6 +9,8 @@ import { Bell, CheckCircle, Clock, AlertCircle, TrendingUp } from 'lucide-react-
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 
+console.log('🔄 [HOME-INDEX] Módulo carregado - versão com postpone atualizado');
+
 const HomeTitleHeader = ({ onNotificationPress }: { onNotificationPress: () => void }) => {
   const colors = useThemeColors();
 
@@ -28,7 +30,7 @@ const HomeTitleHeader = ({ onNotificationPress }: { onNotificationPress: () => v
 };
 
 const TodayStats = ({ medications }: { medications: any[] }) => {
-  const taken = medications.filter((med) => med.taken).length;
+  const taken = medications.filter((med) => med.status === 'confirmed').length;
   const total = medications.length;
   const pending = total - taken;
   const adherence = total > 0 ? Math.round((taken / total) * 100) : 0;
@@ -79,7 +81,8 @@ export default function HomeScreen() {
 
   // Filtrar apenas medicamentos pending e confirmed (ocultar missed)
   const activeMedications = medications.filter(
-    (med: any) => med.status === 'pending' || med.status === 'confirmed'
+    (med: any) =>
+      med.status === 'pending' || med.status === 'confirmed' || med.status === 'postponed'
   );
 
   // Refetch quando a tela receber foco
@@ -108,9 +111,19 @@ export default function HomeScreen() {
     }
   };
 
-  const handlePostpone = async (scheduleId: string) => {
+  const handlePostpone = async (scheduleId: string, currentScheduledTime: string) => {
     try {
-      await postponeMedication(scheduleId);
+      console.log('[HANDLE-POSTPONE] scheduleId:', scheduleId);
+      console.log('[HANDLE-POSTPONE] currentScheduledTime:', currentScheduledTime);
+
+      // Adiar baseado no horário agendado, não na hora atual
+      const scheduledDate = new Date(currentScheduledTime);
+      console.log('[HANDLE-POSTPONE] scheduledDate:', scheduledDate.toISOString());
+
+      const postponedDate = new Date(scheduledDate.getTime() + 30 * 60 * 1000); // +30 minutos
+      console.log('[HANDLE-POSTPONE] postponedDate (+30min):', postponedDate.toISOString());
+
+      await postponeMedication(scheduleId, 30, postponedDate.toISOString());
       showToast('Medicamento adiado por 30 minutos', 'success');
     } catch (error) {
       showToast('Erro ao adiar medicamento', 'error');

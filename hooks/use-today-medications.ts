@@ -51,8 +51,16 @@ export function useTodayMedications() {
   });
 
   const postponeMedicationMutation = useMutation({
-    mutationFn: async ({ scheduleId, minutes = 30 }: { scheduleId: string; minutes?: number }) => {
-      const result = await service.postponeMedication(scheduleId, minutes);
+    mutationFn: async ({
+      scheduleId,
+      minutes = 30,
+      scheduledFor,
+    }: {
+      scheduleId: string;
+      minutes?: number;
+      scheduledFor?: string;
+    }) => {
+      const result = await service.postponeMedication(scheduleId, minutes, scheduledFor);
       if (!result.success) {
         throw new Error(result.error?.message || 'Erro ao adiar medicamento');
       }
@@ -72,8 +80,8 @@ export function useTodayMedications() {
     return confirmMedicationMutation.mutateAsync(scheduleId);
   };
 
-  const postponeMedication = async (scheduleId: string, minutes = 30) => {
-    return postponeMedicationMutation.mutateAsync({ scheduleId, minutes });
+  const postponeMedication = async (scheduleId: string, minutes = 30, scheduledFor?: string) => {
+    return postponeMedicationMutation.mutateAsync({ scheduleId, minutes, scheduledFor });
   };
 
   return {

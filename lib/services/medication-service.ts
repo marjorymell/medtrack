@@ -53,13 +53,14 @@ class MedicationService extends ApiService {
    */
   async postponeMedication(
     scheduleId: string,
-    postponeMinutes: number = 30
+    postponeMinutes: number = 30,
+    scheduledFor?: string
   ): Promise<ApiResponse<void>> {
     console.warn(
       '⚠️ medicationService.postponeMedication() está deprecated. Use historyService.postponeMedication()'
     );
     const { historyService } = await import('./history-service');
-    return historyService.postponeMedication(scheduleId, postponeMinutes) as any;
+    return historyService.postponeMedication(scheduleId, postponeMinutes, scheduledFor) as any;
   }
 
   /**

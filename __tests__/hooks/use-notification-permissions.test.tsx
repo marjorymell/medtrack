@@ -1,24 +1,14 @@
-import { renderHook, waitFor, act } from '@testing-library/react-native';import { renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook, waitFor, act } from '@testing-library/react-native';
+import { useNotificationPermissions } from '@/hooks/use-notification-permissions';
+import * as Notifications from 'expo-notifications';
 
-import { useNotificationPermissions } from '@/hooks/use-notification-permissions';import { useNotificationPermissions } from '@/hooks/use-notification-permissions';
+// Mock do Expo Notifications
+jest.mock('expo-notifications');
 
-import * as Notifications from 'expo-notifications';import * as Notifications from 'expo-notifications';
-
-
-
-// Mock do Expo Notifications// Mock do Expo Notifications
-
-jest.mock('expo-notifications');jest.mock('expo-notifications');
-
-
-
-describe('useNotificationPermissions', () => {describe('useNotificationPermissions', () => {
-
-  beforeEach(() => {  beforeEach(() => {
-
-    jest.clearAllMocks();    jest.clearAllMocks();
-
-  });  });
+describe('useNotificationPermissions', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
 
 
