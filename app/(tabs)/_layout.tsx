@@ -14,12 +14,10 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.textPrimary,
         tabBarInactiveTintColor: colors.textSecondary,
         tabBarStyle: {
+          height: 80,
           backgroundColor: colors.backgroundSecondary,
           borderTopWidth: 1,
           borderTopColor: colors.border,
-          paddingTop: 8,
-          paddingBottom: 12,
-          height: 60,
         },
         tabBarLabelStyle: {
           fontFamily: FONTS.medium,
