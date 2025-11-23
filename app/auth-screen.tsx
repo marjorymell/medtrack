@@ -4,13 +4,17 @@ import { Text } from '@/components/ui/text';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { FormField } from '@/components/ui/form-field';
 import { useThemeColors } from '@/hooks/use-theme-colors';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, AlertCircle } from 'lucide-react-native';
+import { useAuth } from '@/contexts/auth-context';
+import { showToast } from '@/utils/toast';
+import { loginSchema, registerSchema, formatAuthErrors } from '@/lib/validation/auth-schemas';
 
 type AuthMode = 'login' | 'signup';
 
 export default function AuthScreen() {
   const router = useRouter();
   const colors = useThemeColors();
+  const { login, register, isLoading: authLoading } = useAuth();
 
   const { mode: initialModeParam } = useLocalSearchParams<{ mode: AuthMode }>();
 
@@ -18,28 +22,98 @@ export default function AuthScreen() {
     initialModeParam === 'signup' || initialModeParam === 'login' ? initialModeParam : 'login';
 
   const [mode, setMode] = useState<AuthMode>(initialMode);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const isLogin = mode === 'login';
 
-  const handleSubmit = useCallback(() => {
-    if (isLogin) {
-      console.log(`[API] Tentando Logar: ${email}`);
-      router.replace('/(tabs)');
-    } else {
-      console.log(`[API] Tentando Cadastrar: ${email}`);
-      router.replace('/(tabs)');
+  const handleSubmit = useCallback(async () => {
+    // Limpar mensagens de erro anteriores
+    setErrorMessage('');
+    setFieldErrors({});
+
+    try {
+      if (isLogin) {
+        // Validar com Zod
+        const validatedData = loginSchema.parse({ email, password });
+
+        setIsLoading(true);
+        await login(validatedData);
+
+        // Só redireciona em caso de sucesso
+        showToast('Login realizado com sucesso!', 'success');
+        router.replace('/(tabs)');
+      } else {
+        // Validar confirmação de senha antes do Zod
+        if (password !== confirmPassword) {
+          setErrorMessage('As senhas não coincidem');
+          return;
+        }
+
+        // Validar com Zod
+        const validatedData = registerSchema.parse({ name, email, password });
+
+        setIsLoading(true);
+        await register(validatedData);
+
+        // Só redireciona em caso de sucesso
+        showToast('Conta criada com sucesso!', 'success');
+        router.replace('/(tabs)');
+      }
+    } catch (error: any) {
+      // Erros de validação do Zod
+      if (error.name === 'ZodError') {
+        const errors = formatAuthErrors(error);
+        setFieldErrors(errors);
+
+        // Mostrar primeira mensagem de erro no card
+        const firstError = Object.values(errors)[0];
+        if (firstError) {
+          setErrorMessage(firstError);
+        }
+        return;
+      }
+
+      // Erros da API
+      const errorMsg = error.message || 'Erro desconhecido';
+
+      // Mostrar mensagem mais específica baseada no erro
+      if (errorMsg.toLowerCase().includes('credenciais inválidas')) {
+        setErrorMessage(
+          'E-mail ou senha incorretos. Verifique suas credenciais e tente novamente.'
+        );
+      } else if (
+        errorMsg.toLowerCase().includes('já existe') ||
+        errorMsg.toLowerCase().includes('already exists')
+      ) {
+        setErrorMessage('Este e-mail já está cadastrado. Tente fazer login ou use outro e-mail.');
+      } else if (
+        errorMsg.toLowerCase().includes('network') ||
+        errorMsg.toLowerCase().includes('fetch')
+      ) {
+        setErrorMessage('Erro de conexão. Verifique sua internet e tente novamente.');
+      } else {
+        setErrorMessage(errorMsg);
+      }
+    } finally {
+      setIsLoading(false);
     }
-  }, [email, isLogin, router]);
+  }, [email, password, confirmPassword, name, isLogin, login, register, router]);
 
   const toggleMode = useCallback(() => {
     setMode((prev) => (prev === 'login' ? 'signup' : 'login'));
     setEmail('');
     setPassword('');
     setConfirmPassword('');
+    setName('');
+    setErrorMessage('');
+    setFieldErrors({});
   }, []);
 
   return (
@@ -77,19 +151,52 @@ export default function AuthScreen() {
               label="E-mail"
               placeholder="seu.email@exemplo.com"
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(text) => {
+                setEmail(text);
+                if (fieldErrors.email) {
+                  const { email, ...rest } = fieldErrors;
+                  setFieldErrors(rest);
+                }
+              }}
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
+              error={fieldErrors.email}
             />
+
+            {/* Name Field (Registration Mode Only) */}
+            {!isLogin && (
+              <FormField
+                label="Nome"
+                placeholder="Seu nome completo"
+                value={name}
+                onChangeText={(text) => {
+                  setName(text);
+                  if (fieldErrors.name) {
+                    const { name, ...rest } = fieldErrors;
+                    setFieldErrors(rest);
+                  }
+                }}
+                autoCapitalize="words"
+                autoComplete="name"
+                error={fieldErrors.name}
+              />
+            )}
 
             <FormField
               label="Senha"
               placeholder="Digite sua senha"
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(text) => {
+                setPassword(text);
+                if (fieldErrors.password) {
+                  const { password, ...rest } = fieldErrors;
+                  setFieldErrors(rest);
+                }
+              }}
               secureTextEntry
               autoComplete={isLogin ? 'password' : 'new-password'}
+              error={fieldErrors.password}
             />
 
             {/* Password Confirmation (Registration Mode Only) */}
@@ -104,16 +211,44 @@ export default function AuthScreen() {
               />
             )}
 
+            {/* Error Message */}
+            {errorMessage && (
+              <View className="mb-4 flex-row items-start gap-3 rounded-lg border border-red-500/30 bg-red-50 px-4 py-3.5 dark:bg-red-950/20">
+                <AlertCircle size={20} color="#ef4444" className="mt-0.5 flex-shrink-0" />
+                <View className="flex-1">
+                  <Text className="text-sm font-medium leading-relaxed text-red-700 dark:text-red-400">
+                    {errorMessage}
+                  </Text>
+                </View>
+              </View>
+            )}
+
             <View className="h-4" />
 
             {/* Main Action Button */}
             <Pressable
               onPress={handleSubmit}
-              className="mb-3 h-12 w-full items-center justify-center rounded-lg bg-primary dark:bg-primary-dark"
+              disabled={isLoading || authLoading}
+              className={`mb-3 h-12 w-full items-center justify-center rounded-lg ${
+                isLoading || authLoading
+                  ? 'bg-secondary dark:bg-secondary-dark'
+                  : 'bg-primary dark:bg-primary-dark'
+              }`}
               accessibilityLabel={isLogin ? 'Entrar' : 'Cadastrar'}
               accessibilityRole="button">
-              <Text className="text-base font-bold text-primary-foreground dark:text-primary-foreground-dark">
-                {isLogin ? 'Entrar' : 'Criar Conta'}
+              <Text
+                className={`text-base font-bold ${
+                  isLoading || authLoading
+                    ? 'text-secondary-foreground dark:text-secondary-foreground-dark'
+                    : 'text-primary-foreground dark:text-primary-foreground-dark'
+                }`}>
+                {isLoading || authLoading
+                  ? isLogin
+                    ? 'Entrando...'
+                    : 'Criando conta...'
+                  : isLogin
+                    ? 'Entrar'
+                    : 'Criar Conta'}
               </Text>
             </Pressable>
 

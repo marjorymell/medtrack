@@ -3,8 +3,9 @@ import { View, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useThemeColors } from '@/hooks/use-theme-colors';
 import { Pill, ChevronLeft, ChevronRight } from 'lucide-react-native';
-import { medicationServiceMock } from '@/mocks/medication-service-mock';
+import { historyService } from '@/lib/services/history-service';
 import { MedicationHistory } from '@/types/medication';
+import { useAuth } from '@/contexts/auth-context';
 import {
   format,
   isSameDay,
@@ -264,6 +265,7 @@ const CalendarGrid = ({
 
 export default function HistoryScreen() {
   const colors = useThemeColors();
+  const { token } = useAuth();
   const today = useMemo(() => startOfDay(new Date()), []);
 
   const [selectedDate, setSelectedDate] = useState<Date>(today);
@@ -276,25 +278,27 @@ export default function HistoryScreen() {
   // 1. DATA FETCHING (Simulating API)
   // ----------------------------------------------------------------------
 
-  const fetchHistoryForDay = useCallback(async (date: Date) => {
-    setIsLoading(true);
-    setDailyHistory(null);
+  const fetchHistoryForDay = useCallback(
+    async (date: Date) => {
+      setIsLoading(true);
+      setDailyHistory(null);
 
-    // The mock service filters by date.
-    try {
-      const startDate = startOfDay(date).toISOString();
-      const endDate = endOfDay(date).toISOString();
+      try {
+        const startDate = startOfDay(date).toISOString();
+        const endDate = endOfDay(date).toISOString();
 
-      const rawData = await medicationServiceMock.getMedicationHistory(startDate, endDate);
+        const response = await historyService.getMyHistory({ startDate, endDate });
+        const rawData = response.data || [];
 
-      const processedData = processHistoryData(rawData);
-      setDailyHistory(processedData);
-    } catch (err) {
-      console.error('[MOCK API] Erro ao carregar histórico:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+        const processedData = processHistoryData(rawData);
+        setDailyHistory(processedData);
+      } catch (err) {
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [token]
+  );
 
   useEffect(() => {
     // Ensures the viewed month contains the selected date

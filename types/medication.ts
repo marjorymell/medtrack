@@ -5,10 +5,43 @@ export interface Medication {
   id: string;
   name: string;
   dosage: string;
-  time: string;
-  taken: boolean;
-  postponed: boolean;
+  frequency: string;
+  startTime: string;
+  intervalHours: number;
+  stock: number;
+  expiresAt?: string;
+  notes?: string;
   userId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Dados para criar novo medicamento
+ */
+export interface CreateMedicationData {
+  name: string;
+  dosage: string;
+  frequency: string;
+  startTime: string;
+  intervalHours: number;
+  stock: number;
+  expiresAt?: string;
+  notes?: string;
+}
+
+/**
+ * Dados para atualizar medicamento
+ */
+export interface UpdateMedicationData {
+  name?: string;
+  dosage?: string;
+  frequency?: string;
+  startTime?: string;
+  intervalHours?: number;
+  stock?: number;
+  expiresAt?: string;
+  notes?: string;
 }
 
 /**
@@ -32,19 +65,7 @@ export interface TodayMedication extends Medication {
   status: MedicationSchedule['status'];
 }
 
-/**
- * Interface para resposta da API
- */
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  error?: {
-    code: string;
-    message: string;
-    details?: any[];
-  };
-}
+// REMOVIDO: ApiResponse movido para types/api.ts
 
 /**
  * Interface para histórico de medicamentos

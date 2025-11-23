@@ -1,13 +1,15 @@
 import { View, FlatList, ActivityIndicator, RefreshControl, Pressable } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { HomeHeader } from '@/components/home-header'; // Removendo importação no uso, mas mantendo aqui por enquanto
 import { MedicationCard } from '@/components/medication-card';
 import { useTodayMedications } from '@/hooks/use-today-medications';
 import { useThemeColors } from '@/hooks/use-theme-colors';
 import { showToast } from '@/utils/toast';
-import { useState } from 'react';
-import { Bell } from 'lucide-react-native';
+import { useState, useCallback } from 'react';
+import { Bell, CheckCircle, Clock, AlertCircle, TrendingUp } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+
+console.log('🔄 [HOME-INDEX] Módulo carregado - versão com postpone atualizado');
 
 const HomeTitleHeader = ({ onNotificationPress }: { onNotificationPress: () => void }) => {
   const colors = useThemeColors();
@@ -27,6 +29,47 @@ const HomeTitleHeader = ({ onNotificationPress }: { onNotificationPress: () => v
   );
 };
 
+const TodayStats = ({ medications }: { medications: any[] }) => {
+  const taken = medications.filter((med) => med.status === 'confirmed').length;
+  const total = medications.length;
+  const pending = total - taken;
+  const adherence = total > 0 ? Math.round((taken / total) * 100) : 0;
+
+  return (
+    <View className="mx-4 mb-4 rounded-lg bg-card p-4 dark:bg-card-dark">
+      <View className="mb-3 flex-row items-center gap-2">
+        <TrendingUp size={20} color="#10b981" />
+        <Text className="text-lg font-semibold text-foreground dark:text-foreground-dark">
+          Resumo do Dia
+        </Text>
+      </View>
+
+      <View className="flex-row justify-between">
+        <View className="items-center">
+          <Text className="text-2xl font-bold text-green-600 dark:text-green-400">{taken}</Text>
+          <Text className="text-sm text-muted-foreground dark:text-muted-foreground-dark">
+            Tomados
+          </Text>
+        </View>
+
+        <View className="items-center">
+          <Text className="text-2xl font-bold text-orange-600 dark:text-orange-400">{pending}</Text>
+          <Text className="text-sm text-muted-foreground dark:text-muted-foreground-dark">
+            Pendentes
+          </Text>
+        </View>
+
+        <View className="items-center">
+          <Text className="text-2xl font-bold text-blue-600 dark:text-blue-400">{adherence}%</Text>
+          <Text className="text-sm text-muted-foreground dark:text-muted-foreground-dark">
+            Aderência
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+};
+
 export default function HomeScreen() {
   const colors = useThemeColors();
   const router = useRouter();
@@ -36,6 +79,19 @@ export default function HomeScreen() {
 
   const [refreshing, setRefreshing] = useState(false);
 
+  // Filtrar apenas medicamentos pending e confirmed (ocultar missed)
+  const activeMedications = medications.filter(
+    (med: any) =>
+      med.status === 'pending' || med.status === 'confirmed' || med.status === 'postponed'
+  );
+
+  // Refetch quando a tela receber foco
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
+
   const handleRefresh = async () => {
     setRefreshing(true);
     await refetch();
@@ -43,8 +99,7 @@ export default function HomeScreen() {
   };
 
   const handleNotificationPress = () => {
-    // TODO: Navegar para tela de notificações
-    console.log('Abrir notificações');
+    router.push('/notification-settings' as any);
   };
 
   const handleConfirm = async (scheduleId: string) => {
@@ -56,9 +111,19 @@ export default function HomeScreen() {
     }
   };
 
-  const handlePostpone = async (scheduleId: string) => {
+  const handlePostpone = async (scheduleId: string, currentScheduledTime: string) => {
     try {
-      await postponeMedication(scheduleId);
+      console.log('[HANDLE-POSTPONE] scheduleId:', scheduleId);
+      console.log('[HANDLE-POSTPONE] currentScheduledTime:', currentScheduledTime);
+
+      // Adiar baseado no horário agendado, não na hora atual
+      const scheduledDate = new Date(currentScheduledTime);
+      console.log('[HANDLE-POSTPONE] scheduledDate:', scheduledDate.toISOString());
+
+      const postponedDate = new Date(scheduledDate.getTime() + 30 * 60 * 1000); // +30 minutos
+      console.log('[HANDLE-POSTPONE] postponedDate (+30min):', postponedDate.toISOString());
+
+      await postponeMedication(scheduleId, 30, postponedDate.toISOString());
       showToast('Medicamento adiado por 30 minutos', 'success');
     } catch (error) {
       showToast('Erro ao adiar medicamento', 'error');
@@ -69,6 +134,9 @@ export default function HomeScreen() {
     return (
       <View className="flex-1 items-center justify-center bg-background dark:bg-background-dark">
         <ActivityIndicator size="large" color={colors.primary} />
+        <Text className="mt-4 text-muted-foreground dark:text-muted-foreground-dark">
+          Carregando medicamentos...
+        </Text>
       </View>
     );
   }
@@ -76,11 +144,12 @@ export default function HomeScreen() {
   if (error) {
     return (
       <View className="flex-1 items-center justify-center bg-background px-4 dark:bg-background-dark">
+        <AlertCircle size={48} color="#ef4444" className="mb-4" />
         <Text className="mb-4 text-center text-muted-foreground dark:text-muted-foreground-dark">
           {error}
         </Text>
         <Pressable
-          onPress={refetch}
+          onPress={() => refetch()}
           className="rounded-lg bg-primary px-6 py-3 dark:bg-primary-dark">
           <Text className="font-bold text-primary-foreground dark:text-primary-foreground-dark">
             Tentar Novamente
@@ -95,7 +164,7 @@ export default function HomeScreen() {
       <HomeTitleHeader onNotificationPress={handleNotificationPress} />
 
       <FlatList
-        data={medications}
+        data={activeMedications}
         keyExtractor={(item) => item.scheduleId}
         renderItem={({ item }) => (
           <MedicationCard medication={item} onConfirm={handleConfirm} onPostpone={handlePostpone} />
@@ -107,14 +176,24 @@ export default function HomeScreen() {
             tintColor={colors.primary}
           />
         }
+        ListHeaderComponent={
+          activeMedications.length > 0 ? <TodayStats medications={activeMedications} /> : null
+        }
         ListEmptyComponent={
           <View className="flex-1 items-center justify-center py-20">
+            <CheckCircle size={48} color="#10b981" className="mb-4" />
+            <Text className="mb-2 text-center text-lg font-semibold text-foreground dark:text-foreground-dark">
+              Nenhum medicamento pendente!
+            </Text>
             <Text className="text-center text-muted-foreground dark:text-muted-foreground-dark">
-              Nenhum medicamento programado para hoje
+              Todos os medicamentos de hoje foram tomados ou não há nenhum programado.
             </Text>
           </View>
         }
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingBottom: 20,
+        }}
       />
     </View>
   );
