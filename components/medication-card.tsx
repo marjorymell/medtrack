@@ -13,7 +13,7 @@ export function MedicationCard({ medication, onConfirm, onPostpone }: Medication
   const colors = useThemeColors();
 
   // Usar scheduledTime (que já inclui adiamento se aplicável)
-  const displayTime = new Date(medication.scheduledTime).toLocaleTimeString('pt-BR', {
+  const displayTime = new Date(medication.scheduledTime).toLocaleTimeString(navigator.language, {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,

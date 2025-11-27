@@ -174,7 +174,7 @@ export default function StockScreen() {
           <View className="flex-row items-center gap-2">
             <Clock size={14} color={colors.textSecondary} />
             <Text className="text-sm text-muted-foreground dark:text-muted-foreground-dark">
-              {translateFrequency(item.frequency)} • {new Date(item.startTime).toLocaleTimeString('pt-BR', {
+              {translateFrequency(item.frequency)} • {new Date(item.startTime).toLocaleTimeString(navigator.language, {
                 minute: '2-digit',
                 hour: '2-digit',
               })}

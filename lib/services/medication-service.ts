@@ -208,7 +208,8 @@ class MedicationService extends ApiService {
    */
   async updateMedication(medicationId: string, medicationData: any): Promise<ApiResponse<any>> {
     try {
-      const response = await this.put<any>(`/medications/${medicationId}`, medicationData);
+      const timezoneOffset = getTimezoneOffset()
+      const response = await this.put<any>(`/medications/${medicationId}?timezone=${timezoneOffset}`, medicationData);
       return response;
     } catch (error) {
       throw error;

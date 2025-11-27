@@ -105,7 +105,8 @@ export function useNotificationSync() {
 
         const baseDate = new Date();
         baseDate.setHours(hours, minutes, 0, 0);
-        const triggerDate = addMinutes(baseDate, -settings.reminderBefore);
+
+        const triggerDate = addMinutes(baseDate, -(settings.reminderBefore));
 
         const triggerHour = triggerDate.getHours();
         const triggerMinute = triggerDate.getMinutes();
@@ -115,7 +116,7 @@ export function useNotificationSync() {
           const weekday = DAY_MAPPING[dayStr];
           if (!weekday) continue;
 
-          console.log(`[useNotificationSync] syncNotifications - Notificação criada para ${triggerHour}:${triggerMinute} ${dayStr} `)
+          console.log(`[useNotificationSync] syncNotifications - Notificação criada para ${triggerHour}:${triggerMinute} ${dayStr}`)
 
 
 
@@ -131,8 +132,8 @@ export function useNotificationSync() {
               },
             },
             trigger: {
-              hour: hours,
-              minute: minutes,
+              hour: triggerHour,
+              minute: triggerMinute,
               weekday,
               type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
             },
