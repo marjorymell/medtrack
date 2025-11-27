@@ -1,172 +1,18 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React from 'react';
 import { View, Text, ScrollView, Alert, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { X, Bell, Mail, Clock, Moon } from 'lucide-react-native';
 import { useThemeColors } from '@/hooks/use-theme-colors';
-import { useAuth } from '@/contexts/auth-context';
+import { useUserSettings } from '@/contexts/user-settings-context';
 import { useNotificationPermissions } from '@/hooks/use-notification-permissions';
-import { useDeviceToken } from '@/hooks/use-device-token';
-import { notificationService } from '@/lib/services/notification-service';
-import type { NotificationSettings } from '@/types/notification';
+import { useNotification } from '@/contexts/notification-context';
 
 export default function NotificationSettingsScreen() {
   const router = useRouter();
   const colors = useThemeColors();
-  const { user, isAuthenticated } = useAuth();
-  const { permissionStatus, requestPermissions } = useNotificationPermissions();
-  const { deviceToken, registerToken, getDeviceToken, isLoading: tokenLoading } = useDeviceToken();
-
-  // Estado das configurações
-  const [settings, setSettings] = useState<NotificationSettings>({
-    enablePush: false,
-    enableEmail: false,
-    reminderBefore: 0,
-    quietHoursStart: '22:00',
-    quietHoursEnd: '08:00',
-  });
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Marcar componente como montado
-  useEffect(() => {
-    setIsMounted(true);
-    return () => setIsMounted(false);
-  }, []);
-
-  // Memoizar valores dos hooks para evitar leituras durante renderização
-  const memoizedPermissionStatus = useMemo(
-    () => permissionStatus,
-    [permissionStatus.granted, permissionStatus.status]
-  );
-  const memoizedDeviceToken = useMemo(() => deviceToken, [deviceToken]);
-  const memoizedTokenLoading = useMemo(() => tokenLoading, [tokenLoading]);
-
-  // Carregar configurações salvas
-  useEffect(() => {
-    if (isAuthenticated && user?.id && isMounted) {
-      loadSettings();
-    }
-  }, [isAuthenticated, user?.id, isMounted]); // Executa quando auth, user ou montagem mudar
-
-  const loadSettings = async () => {
-    try {
-      setIsLoading(true);
-
-      // Buscar configurações do backend
-      const userSettings = await notificationService.getNotificationSettings();
-
-      // Verificar se o componente ainda está montado antes de atualizar o estado
-      if (!isMounted) {
-        return;
-      }
-
-      const newSettings = {
-        enablePush: userSettings.enablePush,
-        enableEmail: userSettings.enableEmail,
-        reminderBefore: userSettings.reminderBefore,
-        quietHoursStart: userSettings.quietHoursStart || '22:00',
-        quietHoursEnd: userSettings.quietHoursEnd || '08:00',
-      };
-
-      setSettings(newSettings);
-    } catch (error) {
-      console.error('[NotificationSettings] Erro ao carregar configurações:', error);
-      console.error('[NotificationSettings] Detalhes do erro:', error);
-
-      // Verificar se o componente ainda está montado antes de atualizar o estado
-      if (!isMounted) {
-        return;
-      }
-
-      // Fallback para valores padrão em caso de erro
-      const fallbackSettings = {
-        enablePush: memoizedPermissionStatus.granted,
-        enableEmail: false,
-        reminderBefore: 15,
-        quietHoursStart: '22:00',
-        quietHoursEnd: '08:00',
-      };
-      setSettings(fallbackSettings);
-
-      Alert.alert('Erro', 'Não foi possível carregar as configurações. Usando valores padrão.');
-    } finally {
-      // Verificar se o componente ainda está montado antes de atualizar o estado
-      if (isMounted) {
-        setIsLoading(false);
-      }
-    }
-  };
-
-  const updateSetting = async <K extends keyof NotificationSettings>(
-    key: K,
-    value: NotificationSettings[K]
-  ) => {
-    try {
-      setIsLoading(true);
-
-      const newSettings = { ...settings, [key]: value };
-      setSettings(newSettings);
-
-      // Salvar no backend
-      await notificationService.updateNotificationSettings(newSettings);
-    } catch (error) {
-      console.error(`Erro ao atualizar ${String(key)}:`, error);
-      Alert.alert('Erro', 'Não foi possível salvar a configuração. Tente novamente.');
-      // Reverter mudança em caso de erro
-      setSettings(settings);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handlePushToggle = async (enabled: boolean) => {
-    if (enabled && !memoizedPermissionStatus.granted) {
-      // Solicitar permissões primeiro
-      const granted = await requestPermissions();
-      if (!granted) {
-        Alert.alert(
-          'Permissões necessárias',
-          'Para receber notificações, permita o acesso nas configurações do dispositivo.'
-        );
-        return;
-      }
-    }
-
-    await updateSetting('enablePush', enabled);
-
-    // Se ativando, obter e registrar token do dispositivo
-    if (enabled) {
-      try {
-        // Obter token do dispositivo (agora que as permissões foram concedidas)
-        const token = await getDeviceToken();
-        if (token && user?.id) {
-          await registerToken(token, user.id);
-        } else {
-          console.warn('[NotificationSettings] Token ou user ID não disponível:', {
-            token: !!token,
-            userId: user?.id,
-          });
-          Alert.alert(
-            'Erro',
-            'Não foi possível ativar notificações push. Usuário não autenticado.'
-          );
-          // Reverter a configuração em caso de erro
-          await updateSetting('enablePush', false);
-        }
-      } catch (error) {
-        console.error('Erro ao obter/registrar token:', error);
-        Alert.alert('Erro', 'Não foi possível ativar notificações push. Tente novamente.');
-        // Reverter a configuração em caso de erro
-        await updateSetting('enablePush', false);
-      }
-    }
-  };
-
-  const handleQuietHoursChange = async (startTime: string, endTime: string) => {
-    await updateSetting('quietHoursStart', startTime);
-    await updateSetting('quietHoursEnd', endTime);
-  };
+  const { settings, updateSetting, enablePush, isLoading } = useUserSettings();
+  const { permissionStatus: permissions } = useNotificationPermissions();
+  const { expoPushToken } = useNotification();
 
   const SettingToggle = ({
     enabled,
@@ -239,7 +85,7 @@ export default function NotificationSettingsScreen() {
         {/* Notificações Push */}
         <SettingToggle
           enabled={settings.enablePush}
-          onToggle={handlePushToggle}
+          onToggle={() => enablePush(!settings.enablePush)}
           title="Notificações Push"
           description="Receba lembretes de medicamentos no seu dispositivo"
           icon={Bell}
@@ -277,18 +123,16 @@ export default function NotificationSettingsScreen() {
                 key={minutes}
                 onPress={() => updateSetting('reminderBefore', minutes)}
                 disabled={isLoading}
-                className={`rounded-lg border px-3 py-2 ${
-                  settings.reminderBefore === minutes
-                    ? 'border-primary bg-primary dark:border-primary-dark dark:bg-primary-dark'
-                    : 'border-border bg-secondary dark:border-border-dark dark:bg-secondary-dark'
-                }`}
+                className={`rounded-lg border px-3 py-2 ${settings.reminderBefore === minutes
+                  ? 'border-primary bg-primary dark:border-primary-dark dark:bg-primary-dark'
+                  : 'border-border bg-secondary dark:border-border-dark dark:bg-secondary-dark'
+                  }`}
                 style={{ opacity: isLoading ? 0.5 : 1 }}>
                 <Text
-                  className={`text-sm font-medium ${
-                    settings.reminderBefore === minutes
-                      ? 'text-primary-foreground dark:text-primary-foreground-dark'
-                      : 'text-foreground dark:text-foreground-dark'
-                  }`}>
+                  className={`text-sm font-medium ${settings.reminderBefore === minutes
+                    ? 'text-primary-foreground dark:text-primary-foreground-dark'
+                    : 'text-foreground dark:text-foreground-dark'
+                    }`}>
                   {minutes === 0 ? 'No horário' : `${minutes}min`}
                 </Text>
               </Pressable>
@@ -368,19 +212,17 @@ export default function NotificationSettingsScreen() {
               </Text>
               <View className="flex-row items-center gap-2">
                 <View
-                  className={`h-2 w-2 rounded-full ${
-                    memoizedPermissionStatus.granted ? 'bg-green-500' : 'bg-red-500'
-                  }`}
+                  className={`h-2 w-2 rounded-full ${permissions.granted ? 'bg-green-500' : 'bg-red-500'
+                    }`}
                 />
                 <Text
-                  className={`text-sm font-medium ${
-                    memoizedPermissionStatus.granted
-                      ? 'text-green-600 dark:text-green-400'
-                      : 'text-red-600 dark:text-red-400'
-                  }`}>
-                  {memoizedPermissionStatus.granted
+                  className={`text-sm font-medium ${permissions.granted
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-red-600 dark:text-red-400'
+                    }`}>
+                  {permissions.granted
                     ? 'Sim'
-                    : `Não (${memoizedPermissionStatus.status})`}
+                    : `Não (${permissions.status})`}
                 </Text>
               </View>
             </View>
@@ -391,31 +233,29 @@ export default function NotificationSettingsScreen() {
               </Text>
               <View className="flex-row items-center gap-2">
                 <View
-                  className={`h-2 w-2 rounded-full ${
-                    memoizedDeviceToken && settings.enablePush
-                      ? 'bg-green-500'
-                      : memoizedDeviceToken
+                  className={`h-2 w-2 rounded-full ${expoPushToken && settings.enablePush
+                    ? 'bg-green-500'
+                    : expoPushToken
+                      ? 'bg-yellow-500'
+                      : expoPushToken
                         ? 'bg-yellow-500'
-                        : memoizedTokenLoading
-                          ? 'bg-yellow-500'
-                          : 'bg-red-500'
-                  }`}
+                        : 'bg-red-500'
+                    }`}
                 />
                 <Text
-                  className={`text-sm font-medium ${
-                    memoizedDeviceToken && settings.enablePush
-                      ? 'text-green-600 dark:text-green-400'
-                      : memoizedDeviceToken
+                  className={`text-sm font-medium ${expoPushToken && settings.enablePush
+                    ? 'text-green-600 dark:text-green-400'
+                    : expoPushToken
+                      ? 'text-yellow-600 dark:text-yellow-400'
+                      : expoPushToken
                         ? 'text-yellow-600 dark:text-yellow-400'
-                        : memoizedTokenLoading
-                          ? 'text-yellow-600 dark:text-yellow-400'
-                          : 'text-red-600 dark:text-red-400'
-                  }`}>
-                  {memoizedDeviceToken && settings.enablePush
+                        : 'text-red-600 dark:text-red-400'
+                    }`}>
+                  {expoPushToken && settings.enablePush
                     ? 'Sim'
-                    : memoizedDeviceToken
+                    : expoPushToken
                       ? 'Disponível'
-                      : memoizedTokenLoading
+                      : expoPushToken
                         ? 'Carregando...'
                         : 'Não'}
                 </Text>

@@ -99,7 +99,7 @@ export default function AddMedicationScreen() {
         name: name.trim(),
         dosage: dosage.trim(),
         frequency: frequencyEnumValue,
-        startTime,
+        startTime: selectedTime,
         intervalHours: calculateIntervalHours(selectedFrequency),
         stock: parseInt(stock) || 0,
         expiresAt: expiryDate ? convertDateFormat(expiryDate) : undefined,
@@ -175,8 +175,9 @@ export default function AddMedicationScreen() {
   const handleTimeChange = (event: any, selectedTime?: Date) => {
     setShowTimePicker(false);
     if (selectedTime) {
-      setSelectedTime(selectedTime);
       const formattedTime = formatTime(selectedTime);
+      console.log(`\n\nTime picked: ${selectedTime} `)
+      setSelectedTime(selectedTime);
       setStartTime(formattedTime);
     }
   };
@@ -205,11 +206,17 @@ export default function AddMedicationScreen() {
       const selectedOption = FREQUENCY_OPTIONS.find((option) => option.value === selectedFrequency);
       const frequencyEnumValue = selectedOption?.enumValue || 'ONE_TIME';
 
+      const resolvedDate = new Date(selectedTime);
+      resolvedDate.setHours(selectedTime.getHours());
+      resolvedDate.setMinutes(selectedTime.getMinutes());
+      resolvedDate.setSeconds(0);
+      resolvedDate.setMilliseconds(0);
+
       const formData: CreateMedicationData = {
         name: name.trim(),
         dosage: dosage.trim(),
         frequency: frequencyEnumValue,
-        startTime,
+        startTime: selectedTime,
         intervalHours: calculateIntervalHours(selectedFrequency),
         stock: parseInt(stock),
         expiresAt: expiryDate ? convertDateFormat(expiryDate) : undefined,
@@ -375,25 +382,22 @@ export default function AddMedicationScreen() {
                           if (formErrors.frequency)
                             setFormErrors({ ...formErrors, frequency: undefined });
                         }}
-                        className={`rounded-lg p-4 ${
-                          selectedFrequency === option.value
-                            ? 'bg-primary dark:bg-primary-dark'
-                            : 'bg-secondary dark:bg-secondary-dark'
-                        }`}>
-                        <Text
-                          className={`text-base font-medium ${
-                            selectedFrequency === option.value
-                              ? 'text-primary-foreground dark:text-primary-foreground-dark'
-                              : 'text-foreground dark:text-foreground-dark'
+                        className={`rounded-lg p-4 ${selectedFrequency === option.value
+                          ? 'bg-primary dark:bg-primary-dark'
+                          : 'bg-secondary dark:bg-secondary-dark'
                           }`}>
+                        <Text
+                          className={`text-base font-medium ${selectedFrequency === option.value
+                            ? 'text-primary-foreground dark:text-primary-foreground-dark'
+                            : 'text-foreground dark:text-foreground-dark'
+                            }`}>
                           {option.label}
                         </Text>
                         <Text
-                          className={`mt-1 text-sm ${
-                            selectedFrequency === option.value
-                              ? 'text-primary-foreground/80 dark:text-primary-foreground-dark/80'
-                              : 'text-muted-foreground dark:text-muted-foreground-dark'
-                          }`}>
+                          className={`mt-1 text-sm ${selectedFrequency === option.value
+                            ? 'text-primary-foreground/80 dark:text-primary-foreground-dark/80'
+                            : 'text-muted-foreground dark:text-muted-foreground-dark'
+                            }`}>
                           {option.description}
                         </Text>
                       </TouchableOpacity>
@@ -523,17 +527,15 @@ export default function AddMedicationScreen() {
                             if (formErrors.stock)
                               setFormErrors({ ...formErrors, stock: undefined });
                           }}
-                          className={`m-1 w-16 items-center justify-center rounded-lg p-3 ${
-                            stock === number.toString()
-                              ? 'bg-primary dark:bg-primary-dark'
-                              : 'bg-secondary dark:bg-secondary-dark'
-                          }`}>
-                          <Text
-                            className={`text-base font-medium ${
-                              stock === number.toString()
-                                ? 'text-primary-foreground dark:text-primary-foreground-dark'
-                                : 'text-foreground dark:text-foreground-dark'
+                          className={`m-1 w-16 items-center justify-center rounded-lg p-3 ${stock === number.toString()
+                            ? 'bg-primary dark:bg-primary-dark'
+                            : 'bg-secondary dark:bg-secondary-dark'
                             }`}>
+                          <Text
+                            className={`text-base font-medium ${stock === number.toString()
+                              ? 'text-primary-foreground dark:text-primary-foreground-dark'
+                              : 'text-foreground dark:text-foreground-dark'
+                              }`}>
                             {number}
                           </Text>
                         </TouchableOpacity>

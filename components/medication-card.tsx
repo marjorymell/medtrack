@@ -6,7 +6,7 @@ import { useThemeColors } from '@/hooks/use-theme-colors';
 interface MedicationCardProps {
   medication: TodayMedication;
   onConfirm: (scheduleId: string) => void;
-  onPostpone: (scheduleId: string, scheduledTime: string) => void;
+  onPostpone: (scheduleId: string, scheduledTime: string, medication: TodayMedication) => void;
 }
 
 export function MedicationCard({ medication, onConfirm, onPostpone }: MedicationCardProps) {
@@ -96,7 +96,7 @@ export function MedicationCard({ medication, onConfirm, onPostpone }: Medication
           </Pressable>
 
           <Pressable
-            onPress={() => onPostpone(medication.scheduleId, medication.scheduledTime)}
+            onPress={() => onPostpone(medication.scheduleId, medication.scheduledTime, medication)}
             className="h-12 flex-1 items-center justify-center rounded-lg bg-secondary dark:bg-secondary-dark"
             accessibilityLabel={`Adiar dose de ${medication.name}`}
             accessibilityRole="button">

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useMemo } from 'react';
 import { User, LoginRequest, RegisterRequest, AuthContextValue } from '@/types/auth';
 import { authService } from '@/lib/services/auth-service';
 import { showToast } from '../utils/toast';
@@ -32,8 +32,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setToken(storedToken);
         setUser(storedUser);
       } else {
+        setToken(null)
+        setUser(null);
+        await authService.logout();
       }
     } catch (error) {
+      console.error("Auth load failed", error);
+      setToken(null);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -112,7 +118,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     loadStoredAuth();
   }, []);
 
-  const value: AuthContextValue = {
+  const value = useMemo(() => ({
     user,
     token,
     isLoading,
@@ -120,7 +126,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     login,
     register,
     logout,
-  };
+  }), [user, token, isLoading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

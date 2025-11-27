@@ -174,7 +174,10 @@ export default function StockScreen() {
           <View className="flex-row items-center gap-2">
             <Clock size={14} color={colors.textSecondary} />
             <Text className="text-sm text-muted-foreground dark:text-muted-foreground-dark">
-              {translateFrequency(item.frequency)} • {item.startTime}
+              {translateFrequency(item.frequency)} • {new Date(item.startTime).toLocaleTimeString('pt-BR', {
+                minute: '2-digit',
+                hour: '2-digit',
+              })}
             </Text>
           </View>
 
@@ -290,11 +293,10 @@ export default function StockScreen() {
                 </Text>
 
                 <TextInput
-                  className={`rounded-lg border px-4 py-3 text-foreground dark:text-foreground-dark ${
-                    stockError
-                      ? 'border-red-500 bg-red-50 dark:border-red-500 dark:bg-red-950/20'
-                      : 'border-border bg-background dark:border-border-dark dark:bg-background-dark'
-                  }`}
+                  className={`rounded-lg border px-4 py-3 text-foreground dark:text-foreground-dark ${stockError
+                    ? 'border-red-500 bg-red-50 dark:border-red-500 dark:bg-red-950/20'
+                    : 'border-border bg-background dark:border-border-dark dark:bg-background-dark'
+                    }`}
                   placeholder="Novo estoque"
                   value={newStockValue}
                   onChangeText={(text) => {

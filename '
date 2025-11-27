@@ -124,7 +124,7 @@ export default function HomeScreen() {
       const scheduledDate = new Date(currentScheduledTime);
       const postponedDate = new Date(scheduledDate.getTime() + 30 * 60 * 1000); // +30 minutos
 
-      await postponeNotification(scheduleId, medication.name, medication.dosage, 30);
+      postponeNotification(scheduleId, medication.name, medication.dosage, 30);
       await postponeMedication(scheduleId, 30, postponedDate.toISOString());
       showToast('Medicamento adiado por 30 minutos', 'success');
     } catch (error) {

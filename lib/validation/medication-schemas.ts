@@ -24,22 +24,7 @@ export const createMedicationSchema = z.object({
   ),
 
   startTime: z
-    .string()
-    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Horário deve estar no formato HH:MM')
-    .trim()
-    .refine(
-      (time) => {
-        // Validar se o horário não é no passado usando date-fns
-        const now = startOfMinute(new Date()); // Remove segundos para comparação justa
-        const startTime = parse(time, 'HH:mm', new Date());
-
-        // Se o horário já passou hoje, bloquear
-        return isAfter(startTime, now) || startTime.getTime() === now.getTime();
-      },
-      {
-        message: 'O horário de início já passou. Por favor, escolha um horário futuro.',
-      }
-    ),
+    .coerce.date(),
 
   intervalHours: z
     .number()
@@ -96,10 +81,7 @@ export const updateMedicationSchema = z.object({
     .optional(),
 
   startTime: z
-    .string()
-    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Horário deve estar no formato HH:MM')
-    .trim()
-    .optional(),
+    .coerce.date(),
 
   intervalHours: z
     .number()

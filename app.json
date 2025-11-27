@@ -20,6 +20,7 @@
       "supportsTablet": true
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
@@ -31,7 +32,8 @@
         "VIBRATE",
         "NOTIFICATIONS"
       ],
-      "useNextNotificationsApi": true
+      "useNextNotificationsApi": true,
+      "package": "com.medtrack.medtrack"
     },
     "web": {
       "bundler": "metro",
@@ -46,10 +48,10 @@
         {
           "icon": "./assets/images/icon.png",
           "color": "#05D3DB",
-          "sounds": ["./assets/sounds/notification.wav"],
           "mode": "production"
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "notification": {
       "icon": "./assets/images/icon.png",
@@ -63,9 +65,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "d49d3852-d8eb-4ec1-b6bc-10312839f727"
+        "projectId": "9a4c6053-16d0-4a99-b552-299f41e87b7e"
       }
     },
-    "owner": "silvawes"
+    "owner": "medtrack"
   }
 }

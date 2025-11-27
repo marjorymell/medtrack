@@ -83,9 +83,6 @@ export function useMedications() {
 
   const deleteMedicationMutation = useMutation({
     mutationFn: async (medicationId: string) => {
-      // 🔔 REMOVIDO: Notificações locais serão automaticamente removidas
-      // quando o medicamento não aparecer mais em today-medications
-
       const response = await medicationService.deleteMedication(medicationId);
       if (!response.success) {
         throw new Error(response.error?.message || 'Erro na resposta da API');

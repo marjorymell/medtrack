@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import * as Notifications from 'expo-notifications';
-import { Platform } from 'react-native';
 import { ScheduledNotification, ScheduleNotificationRequest } from '@/types/notification';
 import { notificationService } from '@/lib/services/notification-service';
 
@@ -82,7 +81,7 @@ export function useNotificationScheduler() {
           };
 
           await notificationService.scheduleNotification(backendRequest);
-        } catch (backendError) {}
+        } catch (backendError) { }
 
         return notificationId;
       } catch (error: any) {
@@ -113,7 +112,7 @@ export function useNotificationScheduler() {
       // Tentar cancelar no backend também
       try {
         await notificationService.cancelNotification(notificationId);
-      } catch (backendError) {}
+      } catch (backendError) { }
 
       return true;
     } catch (error: any) {

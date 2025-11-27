@@ -107,17 +107,33 @@ export default function EditMedicationScreen() {
       setSelectedFrequency(getFrequencyValueFromEnum(medication.frequency || 'ONE_TIME'));
       setStock(medication.stock?.toString() || '');
       setNotes(medication.notes || '');
-      setStartTime(medication.startTime || '08:00');
 
-      // Configurar selectedTime baseado no startTime (usar hora local para DateTimePicker)
-      const [hours, minutes] = (medication.startTime || '08:00').split(':');
-      const timeDate = new Date();
-      timeDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-      setSelectedTime(timeDate);
+      // --- CORREÇÃO DO HORÁRIO ---
+      if (medication.startTime) {
+        // Criamos um objeto Date real a partir da string ISO do banco
+        const startDateObj = new Date(medication.startTime);
 
-      // Converter data para formato DD/MM/AAAA
+        // Verifica se a data é válida
+        if (!isNaN(startDateObj.getTime())) {
+          // 1. Atualiza o DateTimePicker com o objeto Date completo (preserva a data original)
+          setSelectedTime(startDateObj);
+
+          // 2. Atualiza o texto visual apenas com HH:MM formatado
+          setStartTime(formatTime(startDateObj));
+        } else {
+          // Fallback se vier lixo do banco
+          setStartTime('08:00');
+        }
+      } else {
+        setStartTime('08:00');
+      }
+      // ---------------------------
+
+      // Converter data para formato DD/MM/AAAA (Validade)
       if (medication.expiresAt) {
         const date = new Date(medication.expiresAt);
+        // Ajuste de fuso horário pode ser necessário aqui dependendo de como expiresAt foi salvo
+        // Mas assumindo que está correto:
         setSelectedDate(date);
         const day = date.getDate().toString().padStart(2, '0');
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -145,7 +161,7 @@ export default function EditMedicationScreen() {
         name: name.trim(),
         dosage: dosage.trim(),
         frequency: frequencyEnumValue,
-        startTime: startTime || '08:00',
+        startTime: selectedTime,
         intervalHours: calculateIntervalHours(selectedFrequency),
         stock: parseInt(stock) || 0,
         expiresAt: expiryDate ? convertDateFormat(expiryDate) : undefined,
@@ -189,6 +205,7 @@ export default function EditMedicationScreen() {
     setShowTimePicker(false);
     if (selectedTime) {
       setSelectedTime(selectedTime);
+      console.log(`\n\nTime picked: ${selectedTime} `)
       const formattedTime = formatTime(selectedTime);
       setStartTime(formattedTime);
     }
@@ -218,15 +235,15 @@ export default function EditMedicationScreen() {
       notes !== (medication?.notes || '') ||
       startTime !== (medication?.startTime || '08:00') ||
       expiryDate !==
-        (medication?.expiresAt
-          ? (() => {
-              const date = new Date(medication.expiresAt!);
-              const day = date.getDate().toString().padStart(2, '0');
-              const month = (date.getMonth() + 1).toString().padStart(2, '0');
-              const year = date.getFullYear();
-              return `${day}/${month}/${year}`;
-            })()
-          : '');
+      (medication?.expiresAt
+        ? (() => {
+          const date = new Date(medication.expiresAt!);
+          const day = date.getDate().toString().padStart(2, '0');
+          const month = (date.getMonth() + 1).toString().padStart(2, '0');
+          const year = date.getFullYear();
+          return `${day}/${month}/${year}`;
+        })()
+        : '');
 
     if (hasChanges) {
       Alert.alert(
@@ -277,11 +294,17 @@ export default function EditMedicationScreen() {
       const selectedOption = FREQUENCY_OPTIONS.find((option) => option.value === selectedFrequency);
       const frequencyEnumValue = selectedOption?.enumValue || 'ONE_TIME';
 
+      const resolvedDate = new Date(selectedTime);
+      resolvedDate.setHours(selectedTime.getHours());
+      resolvedDate.setMinutes(selectedTime.getMinutes());
+      resolvedDate.setSeconds(0);
+      resolvedDate.setMilliseconds(0);
+
       const formData: UpdateMedicationData = {
         name: name.trim(),
         dosage: dosage.trim(),
         frequency: frequencyEnumValue,
-        startTime: startTime || '08:00',
+        startTime: resolvedDate,
         intervalHours: calculateIntervalHours(selectedFrequency),
         stock: parseInt(stock),
         expiresAt: expiryDate ? convertDateFormat(expiryDate) : undefined,
@@ -424,25 +447,22 @@ export default function EditMedicationScreen() {
                           if (formErrors.frequency)
                             setFormErrors({ ...formErrors, frequency: undefined });
                         }}
-                        className={`rounded-lg p-4 ${
-                          selectedFrequency === option.value
-                            ? 'bg-primary dark:bg-primary-dark'
-                            : 'bg-secondary dark:bg-secondary-dark'
-                        }`}>
-                        <Text
-                          className={`text-base font-medium ${
-                            selectedFrequency === option.value
-                              ? 'text-primary-foreground dark:text-primary-foreground-dark'
-                              : 'text-foreground dark:text-foreground-dark'
+                        className={`rounded-lg p-4 ${selectedFrequency === option.value
+                          ? 'bg-primary dark:bg-primary-dark'
+                          : 'bg-secondary dark:bg-secondary-dark'
                           }`}>
+                        <Text
+                          className={`text-base font-medium ${selectedFrequency === option.value
+                            ? 'text-primary-foreground dark:text-primary-foreground-dark'
+                            : 'text-foreground dark:text-foreground-dark'
+                            }`}>
                           {option.label}
                         </Text>
                         <Text
-                          className={`mt-1 text-sm ${
-                            selectedFrequency === option.value
-                              ? 'text-primary-foreground/80 dark:text-primary-foreground-dark/80'
-                              : 'text-muted-foreground dark:text-muted-foreground-dark'
-                          }`}>
+                          className={`mt-1 text-sm ${selectedFrequency === option.value
+                            ? 'text-primary-foreground/80 dark:text-primary-foreground-dark/80'
+                            : 'text-muted-foreground dark:text-muted-foreground-dark'
+                            }`}>
                           {option.description}
                         </Text>
                       </TouchableOpacity>
@@ -572,17 +592,15 @@ export default function EditMedicationScreen() {
                             if (formErrors.stock)
                               setFormErrors({ ...formErrors, stock: undefined });
                           }}
-                          className={`m-1 w-16 items-center justify-center rounded-lg p-3 ${
-                            stock === number.toString()
-                              ? 'bg-primary dark:bg-primary-dark'
-                              : 'bg-secondary dark:bg-secondary-dark'
-                          }`}>
-                          <Text
-                            className={`text-base font-medium ${
-                              stock === number.toString()
-                                ? 'text-primary-foreground dark:text-primary-foreground-dark'
-                                : 'text-foreground dark:text-foreground-dark'
+                          className={`m-1 w-16 items-center justify-center rounded-lg p-3 ${stock === number.toString()
+                            ? 'bg-primary dark:bg-primary-dark'
+                            : 'bg-secondary dark:bg-secondary-dark'
                             }`}>
+                          <Text
+                            className={`text-base font-medium ${stock === number.toString()
+                              ? 'text-primary-foreground dark:text-primary-foreground-dark'
+                              : 'text-foreground dark:text-foreground-dark'
+                              }`}>
                             {number}
                           </Text>
                         </TouchableOpacity>

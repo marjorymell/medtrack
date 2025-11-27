@@ -1,10 +1,9 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { User, AuthResponse, LoginRequest, RegisterRequest } from '@/types/auth';
-import { ApiResponse } from '@/types/api';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
-const TOKEN_KEY = '@medtrack:auth_token';
-const USER_KEY = '@medtrack:user';
+const TOKEN_KEY = 'medtrack-auth-token';
+const USER_KEY = 'medtrack-user';
 
 /**
  * Serviço para autenticação de usuários
@@ -122,7 +121,8 @@ class AuthService {
    */
   async logout(): Promise<void> {
     try {
-      await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY]);
+      await SecureStore.deleteItemAsync(TOKEN_KEY);
+      await SecureStore.deleteItemAsync(USER_KEY);
     } catch (error: any) {
       throw error;
     }
@@ -145,7 +145,7 @@ class AuthService {
    */
   async getToken(): Promise<string | null> {
     try {
-      const token = await AsyncStorage.getItem(TOKEN_KEY);
+      const token = await SecureStore.getItemAsync(TOKEN_KEY);
       return token;
     } catch (error) {
       return null;
@@ -157,7 +157,7 @@ class AuthService {
    */
   async getUser(): Promise<User | null> {
     try {
-      const userJson = await AsyncStorage.getItem(USER_KEY);
+      const userJson = await SecureStore.getItemAsync(USER_KEY);
       return userJson ? JSON.parse(userJson) : null;
     } catch {
       return null;
@@ -169,10 +169,8 @@ class AuthService {
    */
   private async saveAuthData(token: string, user: User): Promise<void> {
     try {
-      await AsyncStorage.multiSet([
-        [TOKEN_KEY, token],
-        [USER_KEY, JSON.stringify(user)],
-      ]);
+      await SecureStore.setItemAsync(TOKEN_KEY, token);
+      await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
     } catch (error) {
       throw error;
     }

@@ -1,6 +1,7 @@
 import { ApiResponse } from '@/types/api';
 import { Schedule, CreateScheduleData, UpdateScheduleData } from '@/types/schedule';
 import { ApiService } from './api-service';
+import { SyncResponse } from '@/types/sync';
 
 /**
  * Serviço para gerenciamento de agendamentos (schedules)
@@ -9,6 +10,15 @@ import { ApiService } from './api-service';
 class ScheduleService extends ApiService {
   constructor() {
     super();
+  }
+
+  async getSyncData(): Promise<ApiResponse<SyncResponse>> {
+    try {
+      const response = await this.get<SyncResponse>('/schedules/sync');
+      return response;
+    } catch (error) {
+      throw error;
+    }
   }
 
   /**
